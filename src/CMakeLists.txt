@@ -13,7 +13,7 @@
 add_definitions("-g -Wall")
 
 #add_library(A GSTTaskUtils)
-add_executable(SpeedTest.NET_C_Wrapper Speedtest.c http.c url.c)
+add_executable(SpeedTest.NET_C_Wrapper Speedtest.c http.c url.c SpeedtestConfig.c)
 #target_link_libraries(GSTTask1 ${GSTREAMER_LIBRARIES})
 #target_link_libraries(GSTTask1 ${GLIB_LIBRARIES})
 #target_link_libraries(SpeedTest.NET_C_Wrapper A)
