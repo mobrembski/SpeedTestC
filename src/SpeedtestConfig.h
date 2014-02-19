@@ -15,6 +15,7 @@ typedef struct speedtestConfig
 } SPEEDTESTCONFIG_T;
 
 const char *ConfigLineIdentitier;
+const short ConfigParseFieldsNumber;
 SPEEDTESTCONFIG_T *parseConfig(const char *configline);
 SPEEDTESTCONFIG_T *getConfig();
 #endif

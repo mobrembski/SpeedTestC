@@ -111,10 +111,10 @@ int httpGetRequestSocket(const char *urlToDownload)
 	breakUrl(urlToDownload, &url);
 
 	int sockId = httpGet(address, url.port, request);
-	if(sockId) {
+	if(sockId)
 		return sockId;
-	}
-	else fprintf("Http error: %i\n", httpLastError(),stderr);
+	fprintf(stderr, "Http error: %i\n", httpLastError());
+	return 0;
 }
 
 int recvLine(int pSockId, char* pOut, int pOutSize)
