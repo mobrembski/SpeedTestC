@@ -26,7 +26,7 @@ SPEEDTESTCONFIG_T *parseConfig(const char *configline)
 SPEEDTESTCONFIG_T *getConfig()
 {
 	char buffer[0xFFFF] = {0};
-	int sockId = httpGetRequestSocket("http://www.speedtest.net/speedtest-config.php");
+	int sockId = httpGetRequestSocket("http://localhost/speedtest-config.php");
 	if(sockId) {
 		long size;
 		while((size = recvLine(sockId, buffer, sizeof(buffer))) > 0)

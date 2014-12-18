@@ -12,5 +12,5 @@ typedef struct speedtestServer
 	char *sponsor;
 
 } SPEEDTESTSERVER_T;
-void getServers();
+SPEEDTESTSERVER_T **getServers(int *serverCount);
 #endif
