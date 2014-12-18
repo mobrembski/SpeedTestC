@@ -1,9 +1,6 @@
 #ifndef _SPEEDTEST_CONFIG_
 #define _SPEEDTEST_CONFIG_
-#include <string.h>
-#include <stdio.h>
-#include "http.h"
-#include "url.h"
+
 
 typedef struct speedtestConfig
 {
@@ -18,4 +15,5 @@ const char *ConfigLineIdentitier;
 const short ConfigParseFieldsNumber;
 SPEEDTESTCONFIG_T *parseConfig(const char *configline);
 SPEEDTESTCONFIG_T *getConfig();
+int* func (int *func);
 #endif

@@ -1,11 +1,15 @@
 #include "SpeedtestConfig.h"
+#include <string.h>
+#include <stdio.h>
+#include "http.h"
+#include "url.h"
 
 const char *ConfigLineIdentitier = "<client";
 const short ConfigParseFieldsNumber = 4;
 
 SPEEDTESTCONFIG_T *parseConfig(const char *configline)
 {
-	SPEEDTESTCONFIG_T *result = malloc(sizeof(struct speedtestConfig));
+    SPEEDTESTCONFIG_T *result = malloc(sizeof(struct speedtestConfig));
 	if(sscanf(configline,"%*[^\"]\"%15[^\"]\"%*[^\"]\"%15[^\"]\"%*[^\"]\"%15[^\"]\"%*[^\"]\"%255[^\"]\"",
 			result->ip, result->lat, result->lon, result->isp)!=ConfigParseFieldsNumber)
 	{
@@ -27,13 +31,11 @@ SPEEDTESTCONFIG_T *getConfig()
 			if(strncmp(buffer,ConfigLineIdentitier,strlen(ConfigLineIdentitier))==0)
 			{
 				printf("Config line: %s\n",buffer);
-				SPEEDTESTCONFIG_T *config = parseConfig(buffer);
-				httpClose(sockId);
-				return config;
+                SPEEDTESTCONFIG_T *result = parseConfig(buffer);
+                httpClose(sockId);
+                return result;
 			}
 		}
-		fprintf(stderr,"Cannot find config line!\n");
-		httpClose(sockId);
 	}
 	return NULL;
 }

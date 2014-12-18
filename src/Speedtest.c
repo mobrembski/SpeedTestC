@@ -4,14 +4,17 @@
 #include <stdlib.h>
 #include <netdb.h>
 #include <string.h>
-#include "http.h"
-#include "url.h"
 #include "SpeedtestConfig.h"
-
+#include "SpeedtestServers.h"
 
 int main(int argc, char **argv)
 {
-	SPEEDTESTCONFIG_T *speedTestConfig = getConfig();
+    struct speedtestConfig *speedTestConfig=getConfig();
+    printf("Your IP: %s And ISP: %s\n", speedTestConfig->ip, speedTestConfig->isp);
+    printf("Lat: %s Lon: %s\n", speedTestConfig->lat, speedTestConfig->lon);
+    getServers();
+
+
 	return 0;
 }
 
