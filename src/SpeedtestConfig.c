@@ -7,6 +7,18 @@
 const char *ConfigLineIdentitier = "<client";
 const short ConfigParseFieldsNumber = 4;
 
+long haversineDistance(float lat1, float lon1, float lat2, float lon2)
+{
+	float dx, dy, dz;
+	lon1 -= lon2;
+	lon1 *= TO_RAD, lat1 *= TO_RAD, lat2 *= TO_RAD;
+ 
+	dz = sin(lat1) - sin(lat2);
+	dx = cos(lon1) * cos(lat1) - cos(lat2);
+	dy = sin(lon1) * cos(lat1);
+	return asin(sqrt(dx * dx + dy * dy + dz * dz) / 2) * 2 * R;
+}
+
 SPEEDTESTCONFIG_T *parseConfig(const char *configline)
 {
 	char lat[8];

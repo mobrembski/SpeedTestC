@@ -10,6 +10,7 @@ typedef struct speedtestServer
 	char *name;
 	char *country;
 	char *sponsor;
+	long distance;
 
 } SPEEDTESTSERVER_T;
 SPEEDTESTSERVER_T **getServers(int *serverCount);

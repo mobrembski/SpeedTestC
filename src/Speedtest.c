@@ -15,12 +15,18 @@ int main(int argc, char **argv)
     int serverCount=0;
     int i;
     SPEEDTESTSERVER_T **serverList = getServers(&serverCount);
-    printf("Grabbed %d servers\n",serverCount);
-    for(i=0;i<serverCount;i++)
-        printf("Server [%d] URL: %s\n\t Name:%s Country: %s Sponsor: %s\n",
-            i+1,serverList[i]->url,serverList[i]->name,serverList[i]->country,
-            serverList[i]->sponsor);
 
+    printf("Grabbed %d servers\n",serverCount);
+    for(i=0;i<serverCount;i++) {
+    	serverList[i]->distance = haversineDistance(speedTestConfig->lat,
+    									speedTestConfig->lon,
+    									serverList[i]->lat,
+    									serverList[i]->lon);
+        printf("Server [%d] URL: %s\n\t Name:%s Country: %s Sponsor: %s Dist: %ld\n",
+            i+1,serverList[i]->url,serverList[i]->name,serverList[i]->country,
+            serverList[i]->sponsor,serverList[i]->distance);
+
+    }
 	return 0;
 }
 
