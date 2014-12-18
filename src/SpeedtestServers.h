@@ -5,8 +5,8 @@
 typedef struct speedtestServer
 {
 	char *url;
-	char *lat;
-	char *lon;
+	float lat;
+	float lon;
 	char *name;
 	char *country;
 	char *sponsor;

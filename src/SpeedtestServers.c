@@ -14,25 +14,25 @@ SPEEDTESTSERVER_T *parseServer(const char *configline)
     int i;
     for(i=1;i<8;i++)
     {
-        char *url = strstr(configline, tokens[i-1]);
-        char *lat = strstr(configline, tokens[i]);
-        if(url == NULL || lat==NULL )
+        char *first = strstr(configline, tokens[i-1]);
+        char *second = strstr(configline, tokens[i]);
+        if(first == NULL || second==NULL )
             return NULL;
         int tokensize = strlen(tokens[i-1]);
-        int size=lat-url-1;
+        int size=second-first-1;
         char *substr = malloc(sizeof(char)*size);
-        strncpy(substr, url+tokensize, size-tokensize-1);
-        substr[size-5]='\0';
+        strncpy(substr, first+tokensize, size-tokensize-1);
+        substr[size-tokensize]='\0';
         switch(i)
         {
             case 1:
                 result->url=substr;
                 break;
             case 2:
-                result->lat=substr;
+                result->lat=strtof(substr,NULL);
                 break;
             case 3:
-                result->lon=substr;
+                result->lon=strtof(substr,NULL);
                 break;
             case 4:
                 result->name=substr;
@@ -65,14 +65,12 @@ void getServers()
                 //TODO: Fix case when server entry doesn't fit in TCP packet
                 if(buffer[0]=='<' && buffer[size-1]=='>')
                 {
-                    //printf("Configline: %s\n",buffer);
                     SPEEDTESTSERVER_T *server = parseServer(buffer);
                     if(server)
-                    printf("Server URL: %s lat: %s lon: %s name: %s country: %s sponsor: %s\n",
-                        server->url,server->lat,server->lon,server->name,
-                        server->country,server->sponsor);
+                        printf("Server URL: %s lat: %f lon: %f name: %s country: %s sponsor: %s\n",
+                            server->url,server->lat,server->lon,server->name,
+                            server->country,server->sponsor);
                 }
-                //parseServer(buffer);
                 //if(i++ == 10)
                     //httpClose(sockId);
 			}

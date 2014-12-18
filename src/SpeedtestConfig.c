@@ -9,13 +9,17 @@ const short ConfigParseFieldsNumber = 4;
 
 SPEEDTESTCONFIG_T *parseConfig(const char *configline)
 {
+	char lat[8];
+	char lon[8];
     SPEEDTESTCONFIG_T *result = malloc(sizeof(struct speedtestConfig));
 	if(sscanf(configline,"%*[^\"]\"%15[^\"]\"%*[^\"]\"%15[^\"]\"%*[^\"]\"%15[^\"]\"%*[^\"]\"%255[^\"]\"",
-			result->ip, result->lat, result->lon, result->isp)!=ConfigParseFieldsNumber)
+			result->ip, lat, lon, result->isp)!=ConfigParseFieldsNumber)
 	{
 		fprintf(stderr,"Cannot parse all fields! Config line: %s",configline);
 		return NULL;
 	}
+	result->lat=strtof(lat,NULL);
+	result->lon=strtof(lon,NULL);
 	return result;
 }
 

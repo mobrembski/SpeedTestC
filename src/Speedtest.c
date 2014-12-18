@@ -11,7 +11,7 @@ int main(int argc, char **argv)
 {
     struct speedtestConfig *speedTestConfig=getConfig();
     printf("Your IP: %s And ISP: %s\n", speedTestConfig->ip, speedTestConfig->isp);
-    printf("Lat: %s Lon: %s\n", speedTestConfig->lat, speedTestConfig->lon);
+    printf("Lat: %f Lon: %f\n", speedTestConfig->lat, speedTestConfig->lon);
     getServers();
 
 
