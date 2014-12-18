@@ -9,7 +9,6 @@
 #include "url.h"
 
 int _httpErrorCode = 0;
-int recvLine(int pSockId, char* pOut, int pOutSize);
 
 int httpLastError()
 {

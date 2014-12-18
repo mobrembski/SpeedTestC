@@ -15,5 +15,6 @@ int httpRecv(int pSockId, char* pOut, int pOutSize);
 int httpLastError();
 void httpClose(int pSockId);
 int httpGetRequestSocket(const char *urlToDownload);
+int recvLine(int pSockId, char* pOut, int pOutSize);
 
 #endif // HTTPH
