@@ -14,4 +14,5 @@ typedef struct speedtestServer
 
 } SPEEDTESTSERVER_T;
 SPEEDTESTSERVER_T **getServers(int *serverCount);
+char *getServerDownloadUrl(SPEEDTESTSERVER_T *server);
 #endif

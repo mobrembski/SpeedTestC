@@ -51,7 +51,7 @@ SPEEDTESTSERVER_T **getServers(int *serverCount)
 {
 	char buffer[1500] = {0};
     int sockId = httpGetRequestSocket("http://localhost/speedtest-servers-static.php");
-    SPEEDTESTSERVER_T **list;
+    SPEEDTESTSERVER_T **list = NULL;
 	if(sockId) {
 		long size;
         while((size = recvLine(sockId, buffer, sizeof(buffer))) > 0)
@@ -81,4 +81,16 @@ SPEEDTESTSERVER_T **getServers(int *serverCount)
         return list;
 	}
     return NULL;
+}
+
+char *getServerDownloadUrl(SPEEDTESTSERVER_T *server)
+{
+    size_t urlSize = strlen(server->url);
+    char *upload = strstr(server->url,"upload.php");
+    size_t uploadSize = strlen(upload);
+    size_t totalSize = (urlSize-uploadSize)+19;
+    char *result = calloc(sizeof(char)*totalSize,0);
+    strncat(result,server->url,urlSize-uploadSize);
+    strcat(result,"random4000x4000.jpg");
+    return result;
 }
