@@ -30,9 +30,11 @@ void parseServer(SPEEDTESTSERVER_T *result, const char *configline)
                 break;
             case 2:
                 result->lat=strtof(substr,NULL);
+                free(substr);
                 break;
             case 3:
                 result->lon=strtof(substr,NULL);
+                free(substr);
                 break;
             case 4:
                 result->name=substr;
@@ -42,6 +44,9 @@ void parseServer(SPEEDTESTSERVER_T *result, const char *configline)
                 break;
             case 7:
                 result->sponsor=substr;
+                break;
+            default:
+                free(substr);
                 break;
         }
     }
@@ -73,7 +78,7 @@ SPEEDTESTSERVER_T **getServers(int *serverCount)
                     }
                     list[*serverCount-1] =malloc(sizeof(SPEEDTESTSERVER_T));
                     if(list[*serverCount-1])
-                    parseServer(list[*serverCount-1],buffer);
+                        parseServer(list[*serverCount-1],buffer);
                 }
 			}
 		}
@@ -88,9 +93,10 @@ char *getServerDownloadUrl(SPEEDTESTSERVER_T *server)
     size_t urlSize = strlen(server->url);
     char *upload = strstr(server->url,"upload.php");
     size_t uploadSize = strlen(upload);
-    size_t totalSize = (urlSize-uploadSize)+19;
-    char *result = calloc(sizeof(char)*totalSize,0);
-    strncat(result,server->url,urlSize-uploadSize);
+    size_t totalSize = (urlSize-uploadSize)+strlen("random4000x4000.jpg")+1;
+    char *result = (char*)malloc(sizeof(char)*totalSize);
+    result[(urlSize-uploadSize)]='\0';
+    memcpy(result,server->url,urlSize-uploadSize);
     strcat(result,"random4000x4000.jpg");
     return result;
 }

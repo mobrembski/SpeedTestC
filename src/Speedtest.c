@@ -40,6 +40,7 @@ int main(int argc, char **argv)
 
     char *downloadUrl = getServerDownloadUrl(serverList[0]);
     int sockId = httpGetRequestSocket(downloadUrl);
+
     char buffer[1500];
     int size=-1;
     long totalTransfered =0;
@@ -58,6 +59,17 @@ int main(int argc, char **argv)
     float elapsedSecs = (float)((clock()-start)/(CLOCKS_PER_SEC / 1000))/100;
     float speed = (totalTransfered/elapsedSecs)/1024;
     printf("Bytes %ld downloaded in %.2f seconds %.2f kB/s\n",totalTransfered,elapsedSecs,speed);
+    
+    for(i=0;i<serverCount;i++){
+    	free(serverList[i]->url);
+    	free(serverList[i]->name);
+    	free(serverList[i]->sponsor);
+    	free(serverList[i]->country);
+    	free(serverList[i]);
+    }
+    free(downloadUrl);
+    free(serverList);
+    free(speedTestConfig);
 	return 0;
 }
 
