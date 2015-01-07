@@ -21,7 +21,6 @@ int httpLastError()
 int httpPut(char* pAddress, int pPort, char* pRequest, unsigned long contentSize)
 {
 	char buffer[0xFFFF];
-	//Create the socket and connect to server.
 	int sockId;
 	struct sockaddr_in addr;
 	struct hostent*  hostEntry;
@@ -34,20 +33,21 @@ int httpPut(char* pAddress, int pPort, char* pRequest, unsigned long contentSize
 	addr.sin_family = AF_INET;
 	addr.sin_addr = *((struct in_addr*)*hostEntry->h_addr_list);
 	addr.sin_port = htons((unsigned short)pPort);
-	if (connect(sockId, (struct sockaddr*)&addr, sizeof(struct sockaddr_in)) == -1)
+	if (connect(sockId, (struct sockaddr*)&addr, 
+		sizeof(struct sockaddr_in)) == -1)
 		return 0;
 
-	// TODO: Content-Length isn't set up, this is some kind of "hack".
-	// I cannot understand, but some servers closes up connection too early
-	// even if we set up Content-Lenght to 10 times more than we actually send.
-	// Leaving it uninitialized gives us random high value.
+	/* TODO: Content-Length isn't set up, this is some kind of "hack".
+	 I cannot understand, but some servers closes up connection too early
+	 even if we set up Content-Lenght to 10 times more than we actually send.
+	 Leaving it uninitialized gives us random high value.*/
 	sprintf(buffer, "POST %s HTTP/1.1\r\n"
 			"Host: %s\r\n"
 			"User-Agent: SPEEDTEST_CLIENT\r\n"
 			"Content-Type: application/x-www-form-urlencoded\r\n"
 			"Connection: keep-alive\r\n"
 			"Content-Length: %lu\r\n"
-			"\r\n", pRequest, pAddress);
+			"\r\n", pRequest, pAddress, 100*contentSize);
 	send(sockId, buffer, strlen(buffer), 0);
 
 	return sockId;
@@ -55,11 +55,13 @@ int httpPut(char* pAddress, int pPort, char* pRequest, unsigned long contentSize
 
 int httpGet(char* pAddress, int pPort, char* pRequest)
 {
-	char buffer[0xFFFF];
-	//Create the socket and connect to server.
+	char buffer[0xFFFF], *token;
 	int sockId;
 	struct sockaddr_in addr;
 	struct hostent*  hostEntry;
+	int length = 0;
+	int success = 0;
+	int i;
 	if ((sockId = (int)socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == 0)
 		return 0;
 
@@ -69,10 +71,10 @@ int httpGet(char* pAddress, int pPort, char* pRequest)
 	addr.sin_family = AF_INET;
 	addr.sin_addr = *((struct in_addr*)*hostEntry->h_addr_list);
 	addr.sin_port = htons((unsigned short)pPort);
-	if (connect(sockId, (struct sockaddr*)&addr, sizeof(struct sockaddr_in)) == -1)
+	if (connect(sockId, (struct sockaddr*)&addr, 
+		sizeof(struct sockaddr_in)) == -1)
 		return 0;
 
-	//Make and send get request
 	sprintf(buffer, "GET %s HTTP/1.1\r\n"
 			"Host: %s\r\n"
 			"User-Agent: SPEEDTEST_CLIENT\r\n"
@@ -80,13 +82,9 @@ int httpGet(char* pAddress, int pPort, char* pRequest)
 			"\r\n", pRequest, pAddress);
 	send(sockId, buffer, strlen(buffer), 0);
 
-	int length = 0;
-	int success = 0;
-	int i;
-	//Use a loop to receive all of the header.
 	while((length = recvLine(sockId, buffer, sizeof(buffer))) > 0)
 	{
-		//trim line
+		/*trim line*/
 		for(i = length-1; i >= 0; i--)
 		{
 			if(buffer[i] < ' ')
@@ -94,16 +92,16 @@ int httpGet(char* pAddress, int pPort, char* pRequest)
 			else break;
 		}
 
-		//if end of header
+		/*if end of header*/
 		if(!strlen(buffer))
 			break;
 
-		//get first word
-		char* token = strtok(buffer, " ");
+		/*get first word*/
+		token = strtok(buffer, " ");
 		if(token == NULL)
 			break;
 
-		//Check http error code
+		/*Check http error code*/
 		if(strcmp(token, "HTTP/1.0") == 0 || strcmp(token, "HTTP/1.1") == 0)
 		{
 			_httpErrorCode = atoi(strtok(NULL, " "));
@@ -113,7 +111,7 @@ int httpGet(char* pAddress, int pPort, char* pRequest)
 
 	}
 
-	if(!success==1)
+	if(!success == 1)
 	{
 		close(sockId);
 		return 0;
@@ -146,6 +144,7 @@ int httpGetRequestSocket(const char *urlToDownload)
 	char address[1024];
 	char request[1024];
 	URLPARTS_T url;
+	int sockId;
 
 	memset(&url, 0, sizeof(url));
 	url.address = address;
@@ -155,7 +154,7 @@ int httpGetRequestSocket(const char *urlToDownload)
 
 	breakUrl(urlToDownload, &url);
 
-	int sockId = httpGet(address, url.port, request);
+	sockId = httpGet(address, url.port, request);
 	if(sockId)
 		return sockId;
 	fprintf(stderr, "Http error: %i\n", httpLastError());
@@ -167,6 +166,7 @@ int httpPutRequestSocket(const char *urlToUpload, unsigned long contentSize)
 	char address[1024];
 	char request[1024];
 	URLPARTS_T url;
+	int sockId;
 
 	memset(&url, 0, sizeof(url));
 	url.address = address;
@@ -176,7 +176,7 @@ int httpPutRequestSocket(const char *urlToUpload, unsigned long contentSize)
 
 	breakUrl(urlToUpload, &url);
 
-	int sockId = httpPut(address, url.port, request, contentSize);
+	sockId = httpPut(address, url.port, request, contentSize);
 	if(sockId)
 		return sockId;
 	fprintf(stderr, "Http error: %i\n", httpLastError());
@@ -188,7 +188,7 @@ int recvLine(int pSockId, char* pOut, int pOutSize)
 	int received = 0;
 	char letter;
 	memset(pOut, 0, pOutSize);
-	for(; received < pOutSize-1; received++)
+	for(; received < pOutSize - 1; received++)
 	{
 		if(recv(pSockId, (char*)&letter, 1, 0) > 0)
 		{

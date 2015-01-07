@@ -14,5 +14,4 @@ typedef struct
 
 void decodeRequest(const char* pRequest, char* pOut, int pOutSize);
 void breakUrl(const char* pUrl, URLPARTS_T* pUrlStruct);
-#endif // URLDECODEH
-
+#endif

@@ -11,4 +11,4 @@ int httpGetRequestSocket(const char *urlToDownload);
 int httpPutRequestSocket(const char *urlToUpload, unsigned long contentSize);
 int recvLine(int pSockId, char* pOut, int pOutSize);
 
-#endif // HTTPH
+#endif

@@ -31,24 +31,25 @@ SPEEDTESTCONFIG_T *parseConfig(const char *configline)
 		fprintf(stderr,"Cannot parse all fields! Config line: %s",configline);
 		return NULL;
 	}
-	result->lat=strtof(lat,NULL);
-	result->lon=strtof(lon,NULL);
+	result->lat = strtof(lat,NULL);
+	result->lon = strtof(lon,NULL);
 	return result;
 }
 
 SPEEDTESTCONFIG_T *getConfig()
 {
+	SPEEDTESTCONFIG_T *result;
 	char buffer[0xFFFF] = {0};
 	int sockId = httpGetRequestSocket("http://localhost/speedtest-config.php");
 	if(sockId) {
 		long size;
 		while((size = recvLine(sockId, buffer, sizeof(buffer))) > 0)
 		{
-			buffer[size+1]='\0';
+			buffer[size+1] = '\0';
 			if(strncmp(buffer,ConfigLineIdentitier,strlen(ConfigLineIdentitier))==0)
 			{
 				printf("Config line: %s\n",buffer);
-                SPEEDTESTCONFIG_T *result = parseConfig(buffer);
+                result = parseConfig(buffer);
                 httpClose(sockId);
                 return result;
 			}
