@@ -3,7 +3,6 @@
 
     Luke Graham (39ster@gmail.com)
 */
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

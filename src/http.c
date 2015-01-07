@@ -3,7 +3,6 @@
 
     Luke Graham (39ster@gmail.com)
  */
-
 #include <stdio.h>
 #include "http.h"
 #include "url.h"

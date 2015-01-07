@@ -1,6 +1,6 @@
-#include "SpeedtestConfig.h"
 #include <string.h>
 #include <stdio.h>
+#include "SpeedtestConfig.h"
 #include "http.h"
 #include "url.h"
 

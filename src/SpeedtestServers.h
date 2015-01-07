@@ -1,7 +1,6 @@
 #ifndef _SPEEDTEST_SERVERS_
 #define _SPEEDTEST_SERVERS_
 
-
 typedef struct speedtestServer
 {
 	char *url;

@@ -1,11 +1,9 @@
-#include <stdio.h>
-#include <sys/socket.h>
 #include <arpa/inet.h>
+#include <stdio.h>
 #include <stdlib.h>
-//#include <netdb.h>
-//#include <string.h>
+#include <sys/socket.h>
+#include <sys/time.h>
 #include "http.h"
-#include <time.h>
 #include "SpeedtestConfig.h"
 #include "SpeedtestServers.h"
 
