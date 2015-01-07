@@ -1,7 +1,8 @@
 /*
-    URL functions.
+	URL functions.
 
-    Luke Graham (39ster@gmail.com)
+	Luke Graham (39ster@gmail.com)
+	Michał Obrembski (byku@byku.com.pl)
 */
 #include <string.h>
 #include <stdlib.h>

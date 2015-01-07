@@ -1,3 +1,8 @@
+/*
+	Server list parsing functions.
+
+	Michał Obrembski (byku@byku.com.pl)
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -56,8 +61,8 @@ void parseServer(SPEEDTESTSERVER_T *result, const char *configline)
 SPEEDTESTSERVER_T **getServers(int *serverCount)
 {
 	char buffer[1500] = {0};
-    int sockId = httpGetRequestSocket("http://localhost/speedtest-servers-static.php");
-    SPEEDTESTSERVER_T **list = NULL;
+	int sockId = httpGetRequestSocket("http://www.speedtest.net/speedtest-servers-static.php");
+	SPEEDTESTSERVER_T **list = NULL;
 	if(sockId) {
 		long size;
         while((size = recvLine(sockId, buffer, sizeof(buffer))) > 0)

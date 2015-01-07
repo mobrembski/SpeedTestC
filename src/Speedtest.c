@@ -1,3 +1,8 @@
+/*
+	Main program.
+
+	Michał Obrembski (byku@byku.com.pl)
+*/
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
