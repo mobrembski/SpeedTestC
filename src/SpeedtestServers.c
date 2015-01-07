@@ -1,9 +1,8 @@
-#include "SpeedtestServers.h"
-#include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "SpeedtestServers.h"
 #include "http.h"
-#include "url.h"
-
 
 void parseServer(SPEEDTESTSERVER_T *result, const char *configline)
 {

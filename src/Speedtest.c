@@ -69,11 +69,11 @@ int main(int argc, char **argv)
     elapsedSecs = getElapsedTime(tval_start);
     speed = (totalTransfered/elapsedSecs)/1024;
     httpClose(sockId);
-    printf("Bytes %ld downloaded in %.2f seconds %.2f kB/s\n",
+    printf("Bytes %lld downloaded in %.2f seconds %.2f kB/s\n",
         totalTransfered,elapsedSecs,speed);
 
     // Testing upload...
-    sockId = httpPutRequestSocket(serverList[0]->url,size);
+    sockId = httpPutRequestSocket(serverList[0]->url,totalToBeTransfered);
     gettimeofday(&tval_start, NULL);
     while(totalTransfered>0)
     {
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
     elapsedSecs = getElapsedTime(tval_start);
     speed = (totalToBeTransfered/elapsedSecs)/1024;
     httpClose(sockId);
-    printf("Bytes %ld uploaded in %.2f seconds %.2f kB/s\n",
+    printf("Bytes %lld uploaded in %.2f seconds %.2f kB/s\n",
         totalToBeTransfered,elapsedSecs,speed);
 
     for(i=0;i<serverCount;i++){

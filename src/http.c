@@ -4,8 +4,12 @@
     Luke Graham (39ster@gmail.com)
  */
 #include <stdio.h>
-#include "http.h"
+#include <stdlib.h>
+#include <netdb.h>
+#include <string.h>
+#include <unistd.h>
 #include "url.h"
+#include "http.h"
 
 int _httpErrorCode = 0;
 
@@ -33,7 +37,10 @@ int httpPut(char* pAddress, int pPort, char* pRequest, unsigned long contentSize
 	if (connect(sockId, (struct sockaddr*)&addr, sizeof(struct sockaddr_in)) == -1)
 		return 0;
 
-	//Make and send get request
+	// TODO: Content-Length isn't set up, this is some kind of "hack".
+	// I cannot understand, but some servers closes up connection too early
+	// even if we set up Content-Lenght to 10 times more than we actually send.
+	// Leaving it uninitialized gives us random high value.
 	sprintf(buffer, "POST %s HTTP/1.1\r\n"
 			"Host: %s\r\n"
 			"User-Agent: SPEEDTEST_CLIENT\r\n"
@@ -43,9 +50,6 @@ int httpPut(char* pAddress, int pPort, char* pRequest, unsigned long contentSize
 			"\r\n", pRequest, pAddress);
 	send(sockId, buffer, strlen(buffer), 0);
 
-	int length = 0;
-	int success = 0;
-	int i;
 	return sockId;
 }
 
