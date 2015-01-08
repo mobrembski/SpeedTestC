@@ -53,7 +53,6 @@ SPEEDTESTCONFIG_T *getConfig()
 			buffer[size+1] = '\0';
 			if(strncmp(buffer,ConfigLineIdentitier,strlen(ConfigLineIdentitier))==0)
 			{
-				printf("Config line: %s\n",buffer);
                 result = parseConfig(buffer);
                 httpClose(sockId);
                 return result;
