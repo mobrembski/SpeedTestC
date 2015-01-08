@@ -158,7 +158,8 @@ int httpGetRequestSocket(const char *urlToDownload)
 	sockId = httpGet(address, url.port, request);
 	if(sockId)
 		return sockId;
-	fprintf(stderr, "Http error: %i\n", httpLastError());
+	fprintf(stderr, "Http error while creating GET request socket: %i\n",
+		httpLastError());
 	return 0;
 }
 
@@ -180,7 +181,8 @@ int httpPutRequestSocket(const char *urlToUpload, unsigned long contentSize)
 	sockId = httpPut(address, url.port, request, contentSize);
 	if(sockId)
 		return sockId;
-	fprintf(stderr, "Http error: %i\n", httpLastError());
+	fprintf(stderr, "Http error while creating PUT request socket: %i\n",
+		httpLastError());
 	return 0;
 }
 

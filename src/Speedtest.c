@@ -63,6 +63,8 @@ int main(int argc, char **argv)
     /* Testing download... */
     downloadUrl = getServerDownloadUrl(serverList[0]);
     sockId = httpGetRequestSocket(downloadUrl);
+    if(sockId == 0)
+        return 1;
     size = -1;
     totalTransfered = 0;
     gettimeofday(&tval_start, NULL);
@@ -80,6 +82,8 @@ int main(int argc, char **argv)
     /* Testing upload... */
     totalTransfered = totalToBeTransfered;
     sockId = httpPutRequestSocket(serverList[0]->url,totalToBeTransfered);
+    if(sockId == 0)
+        return 1;
     gettimeofday(&tval_start, NULL);
     while(totalTransfered != 0)
     {
