@@ -95,15 +95,21 @@ SPEEDTESTSERVER_T **getServers(int *serverCount)
     return NULL;
 }
 
-char *getServerDownloadUrl(SPEEDTESTSERVER_T *server)
+char *getServerDownloadUrl(char *serverUrl)
 {
-    size_t urlSize = strlen(server->url);
-    char *upload = strstr(server->url,"upload.php");
+    size_t urlSize = strlen(serverUrl);
+    char *upload = strstr(serverUrl,"upload.php");
+    if(upload == NULL) {
+        printf("Download URL parsing error - cannot find upload.php in %s\n",
+            serverUrl);
+        exit(1);
+    }
     size_t uploadSize = strlen(upload);
-    size_t totalSize = (urlSize-uploadSize) + strlen("random4000x4000.jpg")+1;
+    size_t totalSize = (urlSize - uploadSize) +
+        strlen("random4000x4000.jpg") + 1;
     char *result = (char*)malloc(sizeof(char)*totalSize);
     result[(urlSize-uploadSize)] = '\0';
-    memcpy(result,server->url,urlSize-uploadSize);
-    strcat(result,"random4000x4000.jpg");
+    memcpy(result, serverUrl, urlSize-uploadSize);
+    strcat(result, "random4000x4000.jpg");
     return result;
 }

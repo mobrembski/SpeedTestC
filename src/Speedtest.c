@@ -44,11 +44,11 @@ void parseCmdLine(int argc, char **argv) {
             exit(1);
         }
         if(strcmp("--server", argv[i])==0) {
-            downloadUrl = malloc(sizeof(char)*strlen(argv[i+1]));
-            strcpy(downloadUrl,argv[i+1]);
+            downloadUrl = malloc(sizeof(char) * strlen(argv[i+1]) + 1);
+            strcpy(downloadUrl,argv[i + 1]);
         }
         if(strcmp("--upsize", argv[i])==0) {
-            totalToBeTransfered = strtoul(argv[i+1],NULL,10);
+            totalToBeTransfered = strtoul(argv[i + 1], NULL, 10);
         }
     }
 }
@@ -57,28 +57,33 @@ int main(int argc, char **argv)
 {
     parseCmdLine(argc,argv);
     if(downloadUrl == NULL) {
-    serverList = getServers(&serverCount);
-    speedTestConfig = getConfig();
-    printf("Grabbed %d servers\n",serverCount);
-    printf("Your IP: %s And ISP: %s\n",
-        speedTestConfig->ip, speedTestConfig->isp);
-    printf("Lat: %f Lon: %f\n", speedTestConfig->lat, speedTestConfig->lon);
-    for(i=0;i<serverCount;i++)
-    	serverList[i]->distance = haversineDistance(speedTestConfig->lat,
-    									speedTestConfig->lon,
-    									serverList[i]->lat,
-    									serverList[i]->lon);
+        serverList = getServers(&serverCount);
+        speedTestConfig = getConfig();
+        printf("Grabbed %d servers\n",serverCount);
+        printf("Your IP: %s And ISP: %s\n",
+            speedTestConfig->ip, speedTestConfig->isp);
+        printf("Lat: %f Lon: %f\n", speedTestConfig->lat, speedTestConfig->lon);
+        for(i=0;i<serverCount;i++)
+            serverList[i]->distance = haversineDistance(speedTestConfig->lat,
+                speedTestConfig->lon,
+                serverList[i]->lat,
+                serverList[i]->lon);
 
-    qsort(serverList,serverCount,sizeof(SPEEDTESTSERVER_T *),
-                (int (*)(const void *,const void *)) sortServers);
+        qsort(serverList,serverCount,sizeof(SPEEDTESTSERVER_T *),
+                    (int (*)(const void *,const void *)) sortServers);
 
-    printf("Best Server URL: %s\n\t Name:%s Country: %s Sponsor: %s Dist: %ld\n",
-	    serverList[0]->url,serverList[0]->name,serverList[0]->country,
-	    serverList[0]->sponsor,serverList[0]->distance);
+        printf("Best Server URL: %s\n\t Name:%s Country: %s Sponsor: %s Dist: %ld\n",
+            serverList[0]->url,serverList[0]->name,serverList[0]->country,
+            serverList[0]->sponsor,serverList[0]->distance);
+        downloadUrl = getServerDownloadUrl(serverList[0]->url);
+        uploadUrl = serverList[0]->url;
+    }
+    else {
+        uploadUrl = downloadUrl;
+        downloadUrl = getServerDownloadUrl(downloadUrl);
     }
 
     /* Testing download... */
-    downloadUrl = getServerDownloadUrl(serverList[0]);
     sockId = httpGetRequestSocket(downloadUrl);
     if(sockId == 0)
         return 1;
@@ -98,7 +103,7 @@ int main(int argc, char **argv)
 
     /* Testing upload... */
     totalTransfered = totalToBeTransfered;
-    sockId = httpPutRequestSocket(serverList[0]->url,totalToBeTransfered);
+    sockId = httpPutRequestSocket(uploadUrl,totalToBeTransfered);
     if(sockId == 0)
         return 1;
     gettimeofday(&tval_start, NULL);
@@ -126,6 +131,7 @@ int main(int argc, char **argv)
     	free(serverList[i]);
     }
     free(downloadUrl);
+    free(uploadUrl);
     free(serverList);
     free(speedTestConfig);
 	return 0;
