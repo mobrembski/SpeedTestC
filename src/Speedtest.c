@@ -8,9 +8,11 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/time.h>
+#include <string.h>
 #include "http.h"
 #include "SpeedtestConfig.h"
 #include "SpeedtestServers.h"
+#include "Speedtest.h"
 
 int sortServers(SPEEDTESTSERVER_T **srv1, SPEEDTESTSERVER_T **srv2)
 {
@@ -29,18 +31,32 @@ float getElapsedTime(struct timeval tval_start) {
     return (float)tval_diff.tv_sec + (float)tval_diff.tv_usec/1000000;
 }
 
+void parseCmdLine(int argc, char **argv) {
+    int i;
+    for(i=1;i<argc;i++) {
+        if(strcmp("--help", argv[i])==0 || strcmp("-h", argv[i])==0) {
+            printf("Usage (options are case sensitive):\n\
+            \t--help - Show this help.\n\
+            \t--server URL - use server URL, don'read config.\n\
+            \t--upsize SIZE - use upload size of SIZE bytes.\n"
+            "\nDefault action: Get server from Speedtest.NET infrastructure\n"
+            "and test download with 15MB download size and 1MB upload size.\n");
+            exit(1);
+        }
+        if(strcmp("--server", argv[i])==0) {
+            downloadUrl = malloc(sizeof(char)*strlen(argv[i+1]));
+            strcpy(downloadUrl,argv[i+1]);
+        }
+        if(strcmp("--upsize", argv[i])==0) {
+            totalToBeTransfered = strtoul(argv[i+1],NULL,10);
+        }
+    }
+}
+
 int main(int argc, char **argv)
 {
-    SPEEDTESTCONFIG_T *speedTestConfig;
-    SPEEDTESTSERVER_T **serverList;
-    int serverCount = 0;
-    int i, size, sockId;
-    char *downloadUrl, buffer[1500] = {0};
-    unsigned long totalTransfered = 1024*1024;
-    unsigned long totalToBeTransfered = 1024*1024;
-    struct timeval tval_start;
-    float elapsedSecs, speed;
-
+    parseCmdLine(argc,argv);
+    if(downloadUrl == NULL) {
     serverList = getServers(&serverCount);
     speedTestConfig = getConfig();
     printf("Grabbed %d servers\n",serverCount);
@@ -59,6 +75,7 @@ int main(int argc, char **argv)
     printf("Best Server URL: %s\n\t Name:%s Country: %s Sponsor: %s Dist: %ld\n",
 	    serverList[0]->url,serverList[0]->name,serverList[0]->country,
 	    serverList[0]->sponsor,serverList[0]->distance);
+    }
 
     /* Testing download... */
     downloadUrl = getServerDownloadUrl(serverList[0]);
