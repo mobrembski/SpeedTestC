@@ -53,6 +53,21 @@ void parseCmdLine(int argc, char **argv) {
     }
 }
 
+void freeMem()
+{
+    for(i=0;i<serverCount;i++){
+        free(serverList[i]->url);
+        free(serverList[i]->name);
+        free(serverList[i]->sponsor);
+        free(serverList[i]->country);
+        free(serverList[i]);
+    }
+    free(downloadUrl);
+    free(uploadUrl);
+    free(serverList);
+    free(speedTestConfig);
+}
+
 int main(int argc, char **argv)
 {
     speedTestConfig = NULL;
@@ -62,6 +77,7 @@ int main(int argc, char **argv)
         if (speedTestConfig == NULL)
         {
             printf("Cannot download speedtest.net configuration. Something is wrong...\n");
+            freeMem();
             exit(1);
         }
         printf("Your IP: %s And ISP: %s\n",
@@ -72,6 +88,7 @@ int main(int argc, char **argv)
         if (serverCount == 0)
         {
             printf("Cannot download any speedtest.net server. Something is wrong...\n");
+            freeMem();
             exit(1);
         }
         for(i=0;i<serverCount;i++)
@@ -133,18 +150,7 @@ int main(int argc, char **argv)
     httpClose(sockId);
     printf("Bytes %lu uploaded in %.2f seconds %.2f kB/s\n",
         totalToBeTransfered,elapsedSecs,speed);
-
-    for(i=0;i<serverCount;i++){
-    	free(serverList[i]->url);
-    	free(serverList[i]->name);
-    	free(serverList[i]->sponsor);
-    	free(serverList[i]->country);
-    	free(serverList[i]);
-    }
-    free(downloadUrl);
-    free(uploadUrl);
-    free(serverList);
-    free(speedTestConfig);
-	return 0;
+    freeMem();
+    return 0;
 }
 
