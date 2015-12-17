@@ -55,14 +55,25 @@ void parseCmdLine(int argc, char **argv) {
 
 int main(int argc, char **argv)
 {
+    speedTestConfig = NULL;
     parseCmdLine(argc,argv);
     if(downloadUrl == NULL) {
-        serverList = getServers(&serverCount);
         speedTestConfig = getConfig();
-        printf("Grabbed %d servers\n",serverCount);
+        if (speedTestConfig == NULL)
+        {
+            printf("Cannot download speedtest.net configuration. Something is wrong...\n");
+            exit(1);
+        }
         printf("Your IP: %s And ISP: %s\n",
-            speedTestConfig->ip, speedTestConfig->isp);
+                    speedTestConfig->ip, speedTestConfig->isp);
         printf("Lat: %f Lon: %f\n", speedTestConfig->lat, speedTestConfig->lon);
+        serverList = getServers(&serverCount);
+        printf("Grabbed %d servers\n",serverCount);
+        if (serverCount == 0)
+        {
+            printf("Cannot download any speedtest.net server. Something is wrong...\n");
+            exit(1);
+        }
         for(i=0;i<serverCount;i++)
             serverList[i]->distance = haversineDistance(speedTestConfig->lat,
                 speedTestConfig->lon,
