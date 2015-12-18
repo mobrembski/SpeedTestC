@@ -12,6 +12,6 @@ typedef struct speedtestServer
 	long distance;
 
 } SPEEDTESTSERVER_T;
-SPEEDTESTSERVER_T **getServers(int *serverCount);
+SPEEDTESTSERVER_T **getServers(int *serverCount, const char *infraUrl);
 char *getServerDownloadUrl(char *serverUrl);
 #endif

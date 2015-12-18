@@ -58,11 +58,11 @@ void parseServer(SPEEDTESTSERVER_T *result, const char *configline)
     }
 }
 
-SPEEDTESTSERVER_T **getServers(int *serverCount)
+SPEEDTESTSERVER_T **getServers(int *serverCount, const char *infraUrl)
 {
 	char buffer[1500] = {0};
-	int sockId = httpGetRequestSocket("http://www.speedtest.net/speedtest-servers-static.php");
 	SPEEDTESTSERVER_T **list = NULL;
+	int sockId = httpGetRequestSocket(infraUrl);
 	if(sockId) {
 		long size;
         while((size = recvLine(sockId, buffer, sizeof(buffer))) > 0)
