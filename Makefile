@@ -12,6 +12,10 @@ all:	SpeedTestC
 SpeedTestC: $(OBJS)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
+test:	SpeedTestC
+	valgrind --leak-check=full --show-leak-kinds=all ./SpeedTestC --server http://speedtest.skynet.net.pl/speedtest/upload.php
+	valgrind --leak-check=full --show-leak-kinds=all ./SpeedTestC
+
 clean:
 	rm SpeedTestC
 
