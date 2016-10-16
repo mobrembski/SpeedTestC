@@ -12,4 +12,6 @@ unsigned long totalTransfered = 1024 * 1024;
 unsigned long totalToBeTransfered = 1024 * 1024;
 struct timeval tval_start;
 float elapsedSecs, speed;
+int randomizeBestServers = 0;
+int quietMode = 0;
 #endif

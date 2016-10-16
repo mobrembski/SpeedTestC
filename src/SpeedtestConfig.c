@@ -15,14 +15,20 @@ const short ConfigParseFieldsNumber = 4;
 
 long haversineDistance(float lat1, float lon1, float lat2, float lon2)
 {
-    float dx, dy, dz;
+    float dx, dy, dz, a, b;
     lon1 -= lon2;
     lon1 *= TO_RAD, lat1 *= TO_RAD, lat2 *= TO_RAD;
 
     dz = sin(lat1) - sin(lat2);
     dx = cos(lon1) * cos(lat1) - cos(lat2);
     dy = sin(lon1) * cos(lat1);
-    return asin(sqrt(dx * dx + dy * dy + dz * dz) / 2) * 2 * R;
+    a = (dx * dx + dy * dy + dz * dz);
+    b = sqrt(a) / 2;
+#ifdef USE_ASIN
+    return 2 * R * asin(b);
+#else
+    return 2 * R * atan2(b, sqrt(1 - b * b));
+#endif
 }
 
 SPEEDTESTCONFIG_T *parseConfig(const char *configline)

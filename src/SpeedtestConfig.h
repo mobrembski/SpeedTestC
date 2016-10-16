@@ -2,7 +2,8 @@
 #define _SPEEDTEST_CONFIG_
 #include <math.h>
 #define R 6371
-#define TO_RAD (3.1415926536 / 180)
+#define PI 3.1415926536
+#define TO_RAD (PI / 180)
 
 typedef struct speedtestConfig
 {

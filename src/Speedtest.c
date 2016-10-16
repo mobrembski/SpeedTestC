@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <string.h>
+#include <time.h>
 #include "http.h"
 #include "SpeedtestConfig.h"
 #include "SpeedtestServers.h"
@@ -40,7 +41,8 @@ void parseCmdLine(int argc, char **argv) {
             printf("Usage (options are case sensitive):\n\
             \t--help - Show this help.\n\
             \t--server URL - use server URL, don'read config.\n\
-            \t--upsize SIZE - use upload size of SIZE bytes.\n"
+            \t--upsize SIZE - use upload size of SIZE bytes.\n\
+            \t--randomize NUMBER - randomize server usage for NUMBER of best servers\n"
             "\nDefault action: Get server from Speedtest.NET infrastructure\n"
             "and test download with 15MB download size and 1MB upload size.\n");
             exit(1);
@@ -53,6 +55,10 @@ void parseCmdLine(int argc, char **argv) {
         if(strcmp("--upsize", argv[i]) == 0)
         {
             totalToBeTransfered = strtoul(argv[i + 1], NULL, 10);
+        }
+        if(strcmp("--randomize", argv[i]) == 0)
+        {
+            randomizeBestServers = strtoul(argv[i + 1], NULL, 10);
         }
     }
 }
@@ -67,6 +73,7 @@ void freeMem()
 
 void getBestServer()
 {
+    size_t selectedServer = 0;
     speedTestConfig = getConfig();
     if (speedTestConfig == NULL)
     {
@@ -99,12 +106,18 @@ void getBestServer()
     qsort(serverList, serverCount, sizeof(SPEEDTESTSERVER_T *),
                 (int (*)(const void *,const void *)) sortServers);
 
+    if (randomizeBestServers != 0) {
+        printf("Randomizing selection of %d best servers...\n", randomizeBestServers);
+        srand(time(NULL));
+        selectedServer = rand() % randomizeBestServers;
+    }
+    
     printf("Best Server URL: %s\n\t Name:%s Country: %s Sponsor: %s Dist: %ld\n",
-        serverList[0]->url, serverList[0]->name, serverList[0]->country,
-        serverList[0]->sponsor, serverList[0]->distance);
-    downloadUrl = getServerDownloadUrl(serverList[0]->url);
-    uploadUrl = malloc(sizeof(char) * strlen(serverList[0]->url) + 1);
-    strcpy(uploadUrl, serverList[0]->url);
+        serverList[selectedServer]->url, serverList[selectedServer]->name, serverList[selectedServer]->country,
+        serverList[selectedServer]->sponsor, serverList[selectedServer]->distance);
+    downloadUrl = getServerDownloadUrl(serverList[selectedServer]->url);
+    uploadUrl = malloc(sizeof(char) * strlen(serverList[selectedServer]->url) + 1);
+    strcpy(uploadUrl, serverList[selectedServer]->url);
 
     for(i=0; i<serverCount; i++){
         free(serverList[i]->url);
@@ -136,8 +149,8 @@ void testDownload(const char *url)
     elapsedSecs = getElapsedTime(tval_start);
     speed = (totalTransfered / elapsedSecs) / 1024;
     httpClose(sockId);
-    printf("Bytes %lu downloaded in %.2f seconds %.2f kB/s\n",
-        totalTransfered, elapsedSecs, speed);
+    printf("Bytes %lu downloaded in %.2f seconds %.2f kB/s (%.2f kb/s)\n",
+        totalTransfered, elapsedSecs, speed, speed * 8);
 }
 
 void testUpload(const char *url)
@@ -165,8 +178,8 @@ void testUpload(const char *url)
     elapsedSecs = getElapsedTime(tval_start);
     speed = (totalToBeTransfered / elapsedSecs) / 1024;
     httpClose(sockId);
-    printf("Bytes %lu uploaded in %.2f seconds %.2f kB/s\n",
-        totalToBeTransfered, elapsedSecs, speed);
+    printf("Bytes %lu uploaded in %.2f seconds %.2f kB/s (%.2f kb/s)\n",
+        totalToBeTransfered, elapsedSecs, speed, speed * 8);
 }
 
 int main(int argc, char **argv)
