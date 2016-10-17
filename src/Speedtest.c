@@ -46,7 +46,7 @@ void parseCmdLine(int argc, char **argv) {
             \tSingle download test is downloading 30MB file.\n\
             \t--randomize NUMBER - randomize server usage for NUMBER of best servers\n\
             \nDefault action: Get server from Speedtest.NET infrastructure\n\
-            and test download with 15MB download size and 1MB upload size.\n");
+            and test download with 30MB download size and 1MB upload size.\n");
             exit(1);
         }
         if(strcmp("--server", argv[i]) == 0)
