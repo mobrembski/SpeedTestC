@@ -152,7 +152,7 @@ void testDownload(const char *url)
 
     while(size != 0)
     {
-        size = httpRecv(sockId, buffer, 1500);
+        size = httpRecv(sockId, buffer, BUFFER_SIZE);
         totalTransfered += size;
     }
     httpClose(sockId);
@@ -177,9 +177,9 @@ void testUpload(const char *url)
     gettimeofday(&tval_start, NULL);
     while(totalTransfered != 0)
     {
-        for(i=0; i < 1500; i++)
+        for(i=0; i < BUFFER_SIZE; i++)
             buffer[i] = (char)i;
-        size = httpSend(sockId, buffer, 1500);
+        size = httpSend(sockId, buffer, BUFFER_SIZE);
         /* To check for unsigned overflow */
         if(totalTransfered < size)
             break;
