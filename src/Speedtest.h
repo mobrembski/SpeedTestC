@@ -1,9 +1,11 @@
 #ifndef _SPEEDTEST_
 #define _SPEEDTEST_
+#define SPEED_TEST_FILE_SIZE 31625365
 SPEEDTESTCONFIG_T *speedTestConfig;
 SPEEDTESTSERVER_T **serverList;
 int serverCount = 0;
 int i, size, sockId;
+unsigned totalDownloadTestCount = 1;
 char buffer[1500] = {0};
 char *downloadUrl = NULL;
 char *tmpUrl = NULL;

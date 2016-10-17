@@ -42,9 +42,11 @@ void parseCmdLine(int argc, char **argv) {
             \t--help - Show this help.\n\
             \t--server URL - use server URL, don'read config.\n\
             \t--upsize SIZE - use upload size of SIZE bytes.\n\
-            \t--randomize NUMBER - randomize server usage for NUMBER of best servers\n"
-            "\nDefault action: Get server from Speedtest.NET infrastructure\n"
-            "and test download with 15MB download size and 1MB upload size.\n");
+            \t--downtimes TIMES - how many times repeat download test.\n\
+            \tSingle download test is downloading 30MB file.\n\
+            \t--randomize NUMBER - randomize server usage for NUMBER of best servers\n\
+            \nDefault action: Get server from Speedtest.NET infrastructure\n\
+            and test download with 15MB download size and 1MB upload size.\n");
             exit(1);
         }
         if(strcmp("--server", argv[i]) == 0)
@@ -55,6 +57,10 @@ void parseCmdLine(int argc, char **argv) {
         if(strcmp("--upsize", argv[i]) == 0)
         {
             totalToBeTransfered = strtoul(argv[i + 1], NULL, 10);
+        }
+        if(strcmp("--downtimes", argv[i]) == 0)
+        {
+            totalDownloadTestCount = strtoul(argv[i + 1], NULL, 10);
         }
         if(strcmp("--randomize", argv[i]) == 0)
         {
@@ -111,7 +117,7 @@ void getBestServer()
         srand(time(NULL));
         selectedServer = rand() % randomizeBestServers;
     }
-    
+
     printf("Best Server URL: %s\n\t Name:%s Country: %s Sponsor: %s Dist: %ld\n",
         serverList[selectedServer]->url, serverList[selectedServer]->name, serverList[selectedServer]->country,
         serverList[selectedServer]->sponsor, serverList[selectedServer]->distance);
@@ -130,6 +136,11 @@ void getBestServer()
 
 void testDownload(const char *url)
 {
+  int testNum;
+  totalTransfered = 0;
+  gettimeofday(&tval_start, NULL);
+  for (testNum = 0; testNum < totalDownloadTestCount; testNum++) {
+    size = -1;
     /* Testing download... */
     sockId = httpGetRequestSocket(url);
     if(sockId == 0)
@@ -138,17 +149,16 @@ void testDownload(const char *url)
         freeMem();
         exit(1);
     }
-    size = -1;
-    totalTransfered = 0;
-    gettimeofday(&tval_start, NULL);
+
     while(size != 0)
     {
         size = httpRecv(sockId, buffer, 1500);
         totalTransfered += size;
     }
-    elapsedSecs = getElapsedTime(tval_start);
-    speed = (totalTransfered / elapsedSecs) / 1024;
     httpClose(sockId);
+  }
+  elapsedSecs = getElapsedTime(tval_start);
+  speed = (totalTransfered / elapsedSecs) / 1024;
     printf("Bytes %lu downloaded in %.2f seconds %.2f kB/s (%.2f kb/s)\n",
         totalTransfered, elapsedSecs, speed, speed * 8);
 }
@@ -206,4 +216,3 @@ int main(int argc, char **argv)
     freeMem();
     return 0;
 }
-
