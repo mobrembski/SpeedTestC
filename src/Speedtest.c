@@ -118,7 +118,7 @@ void getBestServer()
         selectedServer = rand() % randomizeBestServers;
     }
 
-    printf("Best Server URL: %s\n\t Name:%s Country: %s Sponsor: %s Dist: %ld\n",
+    printf("Best Server URL: %s\n\t Name: %s Country: %s Sponsor: %s Dist: %ld km\n",
         serverList[selectedServer]->url, serverList[selectedServer]->name, serverList[selectedServer]->country,
         serverList[selectedServer]->sponsor, serverList[selectedServer]->distance);
     downloadUrl = getServerDownloadUrl(serverList[selectedServer]->url);
