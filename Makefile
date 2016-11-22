@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -g -std=c99 -Wall
-LIBS = -lm
+LIBS = -lm -lpthread
 OBJS = src/Speedtest.c \
 	src/SpeedtestConfig.c \
 	src/SpeedtestServers.c \

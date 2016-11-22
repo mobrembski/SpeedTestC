@@ -34,7 +34,7 @@ int httpPut(char* pAddress, int pPort, char* pRequest, unsigned long contentSize
 	addr.sin_family = AF_INET;
 	addr.sin_addr = *((struct in_addr*)*hostEntry->h_addr_list);
 	addr.sin_port = htons((unsigned short)pPort);
-	if (connect(sockId, (struct sockaddr*)&addr, 
+	if (connect(sockId, (struct sockaddr*)&addr,
 		sizeof(struct sockaddr_in)) == -1)
 		return 0;
 
@@ -48,7 +48,8 @@ int httpPut(char* pAddress, int pPort, char* pRequest, unsigned long contentSize
 			"Content-Type: application/x-www-form-urlencoded\r\n"
 			"Connection: keep-alive\r\n"
 			"Content-Length: %lu\r\n"
-			"\r\n", pRequest, pAddress, 100*contentSize);
+			"\r\n", pRequest, pAddress, /* 100* */contentSize);
+
 	send(sockId, buffer, strlen(buffer), 0);
 
 	return sockId;
@@ -72,7 +73,7 @@ int httpGet(char* pAddress, int pPort, char* pRequest)
 	addr.sin_family = AF_INET;
 	addr.sin_addr = *((struct in_addr*)*hostEntry->h_addr_list);
 	addr.sin_port = htons((unsigned short)pPort);
-	if (connect(sockId, (struct sockaddr*)&addr, 
+	if (connect(sockId, (struct sockaddr*)&addr,
 		sizeof(struct sockaddr_in)) == -1)
 		return 0;
 
@@ -112,7 +113,7 @@ int httpGet(char* pAddress, int pPort, char* pRequest)
 
 	}
 
-	if(!success == 1)
+	if((!success) == 1)
 	{
 		close(sockId);
 		return 0;
@@ -127,9 +128,9 @@ int httpRecv(int pSockId, char* pOut, int pOutSize)
 	return 0;
 }
 
-int httpSend(int pSockId, char* pOut, int pOutSize)
+ssize_t httpSend(int pSockId, char* pOut, int pOutSize)
 {
-	int size;
+	ssize_t size;
 	if((size = send(pSockId, pOut, pOutSize, 0)) > 0)
 		return size;
 	return 0;

@@ -3,6 +3,7 @@
 
 	Michał Obrembski (byku@byku.com.pl)
 */
+#define __USE_POSIX 1
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +11,9 @@
 #include <sys/time.h>
 #include <string.h>
 #include <time.h>
+#include <pthread.h> /* For pthread_create() */
+#include <unistd.h>
+
 #include "http.h"
 #include "SpeedtestConfig.h"
 #include "SpeedtestServers.h"
@@ -134,62 +138,204 @@ void getBestServer()
     }
 }
 
+static void *__testDownload(void *arg)
+{
+	/* Testing download... */
+	struct thread_param *p = (struct thread_param *)arg;
+	int testNum;
+	char buffer[BUFFER_SIZE] = {0};
+	struct timeval tval_start;
+	float speed = 0;
+
+	gettimeofday(&tval_start, NULL);
+	for (testNum = 0; testNum < p->testCount; testNum++) {
+		int size = -1;
+		int sockId = httpGetRequestSocket(p->url);
+
+		if(sockId == 0)
+		{
+		    printf("Unable to open socket for Download!");
+			pthread_exit(NULL);
+		}
+
+		while(size != 0)
+		{
+		    size = httpRecv(sockId, buffer, BUFFER_SIZE);
+			if (size != -1)
+			    p->transferedBytes += size;
+		}
+		httpClose(sockId);
+	}
+	p->elapsedSecs = getElapsedTime(tval_start);
+	speed = (p->transferedBytes / p->elapsedSecs) / 1024;
+	printf("Bytes %lu downloaded in %.2f seconds %.2f kB/s (%.2f kb/s)\n",
+	    p->transferedBytes, p->elapsedSecs, speed, speed * 8);
+
+	return NULL;
+}
+
 void testDownload(const char *url)
 {
-  int testNum;
-  totalTransfered = 0;
-  gettimeofday(&tval_start, NULL);
-  for (testNum = 0; testNum < totalDownloadTestCount; testNum++) {
-    size = -1;
-    /* Testing download... */
-    sockId = httpGetRequestSocket(url);
-    if(sockId == 0)
-    {
-        printf("Unable to open socket for Download!");
-        freeMem();
-        exit(1);
-    }
+	struct thread_param *param = (struct thread_param *) calloc(speedTestConfig->th_download.count,
+		sizeof(struct thread_param));
+	int i;
 
-    while(size != 0)
-    {
-        size = httpRecv(sockId, buffer, BUFFER_SIZE);
-        totalTransfered += size;
-    }
-    httpClose(sockId);
-  }
-  elapsedSecs = getElapsedTime(tval_start);
-  speed = (totalTransfered / elapsedSecs) / 1024;
-    printf("Bytes %lu downloaded in %.2f seconds %.2f kB/s (%.2f kb/s)\n",
-        totalTransfered, elapsedSecs, speed, speed * 8);
+	for (i = 0; i < speedTestConfig->th_download.count; i++) {
+		/* Initializing some parameters */
+		param[i].testCount = totalDownloadTestCount / speedTestConfig->th_download.count;
+		if (param[i].testCount == 0) {
+			/* At least one test should be run */
+			param[i].testCount = 1;
+		}
+		param[i].url = strdup(url);
+		if (param[i].url) {
+			pthread_create(&param[i].tid, NULL, &__testDownload, &param[i]);
+		}
+	}
+	/* Wait for all threads */
+	for (i = 0; i < speedTestConfig->th_download.count; i++) {
+		pthread_join(param[i].tid, NULL);
+		if (param[i].transferedBytes) {
+			/* There's no reason that we transfered nothing except error occured */
+			totalTransfered += param[i].transferedBytes;
+			speed += (param[i].transferedBytes / param[i].elapsedSecs) / 1024;
+		}
+		/* Cleanup */
+		free(param[i].url);
+	}
+	free(param);
+
+	/* Report */
+	printf("[ SUM ] Bytes %lu downloaded with a speed %.2f kB/s (%.2f Mbit/s)\n",
+	   totalTransfered, speed, speed * 8 / 1024);
+
+}
+
+static void __appendTimestamp(const char *url, char *buff, int buff_len)
+{
+	char delim = '?';
+	char *p = strchr(url, '?');
+
+	if (p)
+		delim = '&';
+	snprintf(buff, buff_len, "%s%cx=%llu", url, delim, (unsigned long long)time(NULL));
+}
+
+static int __readUploadResp(int sockId)
+{
+	char ch;
+	int ret;
+
+	while (1) {
+		ret = read(sockId, &ch, 1);
+		if (ret == -1) {
+			perror("read()");
+			break;
+		} else if (!ret) {
+			printf("Ending connection...");
+			break;
+		}
+
+		if (ch == '\n' || ch == '\r')
+			break;
+		/* printf("%c", ch); */
+	}
+
+	return 0;
+}
+static void *__testUpload(void *arg)
+{
+    /* Testing upload... */
+	struct thread_param *p = (struct thread_param *)arg;
+	char t[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	unsigned int seed = (unsigned int)time(NULL);
+	char buffer[BUFFER_SIZE] = {0};
+	int i, size, sockId;
+	float speed;
+	struct timeval tval_start;
+	unsigned long totalTransfered = 0;
+	char uploadUrl[1024];
+
+	/* Build the random buffer */
+	for(i=0; i < BUFFER_SIZE; i++)
+		    buffer[i] = t[rand_r(&seed) % ARRAY_SIZE(t)];
+
+	gettimeofday(&tval_start, NULL);
+	for (i = 0; i < p->testCount; i++) {
+		__appendTimestamp(p->url, uploadUrl, sizeof(uploadUrl));
+		/* FIXME: totalToBeTransfered should be readonly while the upload thread is running */
+	    totalTransfered = totalToBeTransfered;
+	    sockId = httpPutRequestSocket(uploadUrl, totalToBeTransfered);
+	    if(sockId == 0)
+	    {
+	        printf("Unable to open socket for Upload!");
+	        pthread_exit(NULL);
+	    }
+
+	    while(totalTransfered != 0)
+	    {
+			if (totalTransfered > BUFFER_SIZE) {
+		        size = httpSend(sockId, buffer, BUFFER_SIZE);
+			} else {
+				buffer[totalTransfered - 1] = '\n'; /* Indicate terminated */
+				size = httpSend(sockId, buffer, totalTransfered);
+			}
+	        totalTransfered -= size;
+	    }
+		/* XXX: need to check the real response? */
+		__readUploadResp(sockId);
+		p->transferedBytes += totalToBeTransfered;
+		/* Cleanup */
+		httpClose(sockId);
+	}
+    p->elapsedSecs = getElapsedTime(tval_start);
+    speed = (p->transferedBytes / p->elapsedSecs) / 1024;
+
+    printf("Bytes %lu uploaded in %.2f seconds %.2f kB/s (%.2f Mbit/s)\n",
+        p->transferedBytes, p->elapsedSecs, speed, speed * 8 / 1024);
+
+	return NULL;
 }
 
 void testUpload(const char *url)
 {
-    /* Testing upload... */
-    totalTransfered = totalToBeTransfered;
-    sockId = httpPutRequestSocket(uploadUrl, totalToBeTransfered);
-    if(sockId == 0)
-    {
-        printf("Unable to open socket for Upload!");
-        freeMem();
-        exit(1);
-    }
-    gettimeofday(&tval_start, NULL);
-    while(totalTransfered != 0)
-    {
-        for(i=0; i < BUFFER_SIZE; i++)
-            buffer[i] = (char)i;
-        size = httpSend(sockId, buffer, BUFFER_SIZE);
-        /* To check for unsigned overflow */
-        if(totalTransfered < size)
-            break;
-        totalTransfered -= size;
-    }
-    elapsedSecs = getElapsedTime(tval_start);
-    speed = (totalToBeTransfered / elapsedSecs) / 1024;
-    httpClose(sockId);
-    printf("Bytes %lu uploaded in %.2f seconds %.2f kB/s (%.2f kb/s)\n",
-        totalToBeTransfered, elapsedSecs, speed, speed * 8);
+	struct thread_param *param = (struct thread_param *) calloc(speedTestConfig->th_upload.count,
+		sizeof(struct thread_param));
+	int i;
+
+
+
+	for (i = 0; i < speedTestConfig->th_upload.count; i++) {
+		/* Initializing some parameters */
+		param[i].testCount =  speedTestConfig->th_upload.length;
+		if (param[i].testCount == 0) {
+			/* At least three test should be run */
+			param[i].testCount = 3;
+		}
+		param[i].url = strdup(url);
+		if (param[i].url) {
+			pthread_create(&param[i].tid, NULL, &__testUpload, &param[i]);
+		}
+	}
+
+	/* Refresh */
+	totalTransfered = 0;
+	speed = 0;
+
+	/* Wait for all threads */
+	for (i = 0; i < speedTestConfig->th_upload.count; i++) {
+		pthread_join(param[i].tid, NULL);
+		if (param[i].transferedBytes) {
+			/* There's no reason that we transfered nothing except error occured */
+			totalTransfered += param[i].transferedBytes;
+			speed += (param[i].transferedBytes / param[i].elapsedSecs) / 1024;
+		}
+		/* Cleanup */
+		free(param[i].url);
+	}
+	free(param);
+	printf("[SUM] Bytes %lu uploaded with a speed %.2f kB/s (%.2f Mbit/s)\n",
+        totalTransfered, speed, speed * 8 / 1024);
 }
 
 int main(int argc, char **argv)
