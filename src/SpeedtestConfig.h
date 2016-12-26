@@ -7,7 +7,7 @@
 
 typedef struct speedtestConfig
 {
-	char ip[15];
+	char ip[16];
 	float lat;
 	float lon;
 	char isp[255];
