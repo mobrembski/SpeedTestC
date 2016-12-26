@@ -33,8 +33,8 @@ long haversineDistance(float lat1, float lon1, float lat2, float lon2)
 
 SPEEDTESTCONFIG_T *parseConfig(const char *configline)
 {
-    char lat[8];
-    char lon[8];
+    char lat[16] = {0};
+    char lon[16] = {0};
     SPEEDTESTCONFIG_T *result = malloc(sizeof(struct speedtestConfig));
     if(sscanf(configline,"%*[^\"]\"%15[^\"]\"%*[^\"]\"%15[^\"]\"%*[^\"]\"%15[^\"]\"%*[^\"]\"%255[^\"]\"",
             result->ip, lat, lon, result->isp)!=ConfigParseFieldsNumber)
