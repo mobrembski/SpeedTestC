@@ -11,7 +11,7 @@
 #endif /* ARRAY_SIZE */
 
 typedef struct ThreadConfig {
-	int count; /* number of threads */
+	int threadsCount; /* number of threads */
 	int length; /* testlength? */
 } THREADCONFIG_T;
 

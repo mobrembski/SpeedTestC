@@ -15,7 +15,7 @@ void parseServer(SPEEDTESTSERVER_T *result, const char *configline)
     result = malloc(sizeof(SPEEDTESTSERVER_T));*/
     int tokensize,size;
     char *first, *second, *substr;
-    const char *tokens[8] = {"url=\"","lat=\"", "lon=\"", "name=\"", 
+    const char *tokens[8] = {"url=\"","lat=\"", "lon=\"", "name=\"",
                                 "country=\"", "cc=\"", "sponsor=\"", "id=\""};
     int i;
     for(i=1; i < 8; i++)

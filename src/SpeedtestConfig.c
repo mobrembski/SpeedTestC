@@ -67,7 +67,7 @@ static void parseUpload(const char *configline, SPEEDTESTCONFIG_T **result_p)
 	getValue(configline, "testlength=", testlength);
 	getValue(configline, "threads=", threads);
 
-	result->uploadThreadConfig.count = atoi(threads);
+	result->uploadThreadConfig.threadsCount = atoi(threads);
 	result->uploadThreadConfig.length = atoi(testlength);
 }
 
@@ -78,7 +78,7 @@ static void parseDownload(const char *configline, SPEEDTESTCONFIG_T **result_p)
 
 	getValue(configline, "threadcount=", threadcount);
 
-	result->downloadThreadConfig.count = atoi(threadcount);
+	result->downloadThreadConfig.threadsCount = atoi(threadcount);
 }
 
 static void parseServerConfig(const char *configline, SPEEDTESTCONFIG_T **result_p)
@@ -88,7 +88,7 @@ static void parseServerConfig(const char *configline, SPEEDTESTCONFIG_T **result
 
 	getValue(configline, "threadcount=", threadcount);
 
-	result->downloadThreadConfig.count = atoi(threadcount);
+	result->downloadThreadConfig.threadsCount = atoi(threadcount);
 }
 
 SPEEDTESTCONFIG_T *getConfig()

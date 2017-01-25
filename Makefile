@@ -1,9 +1,11 @@
 CC = gcc
-CFLAGS = -g -std=c99 -Wall
-LIBS = -lm
+CFLAGS = -O0 -g -std=c99 -Wall
+LIBS = -lm -lpthread
 OBJS = src/Speedtest.c \
 	src/SpeedtestConfig.c \
 	src/SpeedtestServers.c \
+	src/SpeedtestDownloadTest.c \
+	src/SpeedtestUploadTest.c \
 	src/url.c \
 	src/http.c
 
