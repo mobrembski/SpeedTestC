@@ -1,19 +1,13 @@
-
-#include <arpa/inet.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <string.h>
-#include <time.h>
-#include <pthread.h>
-#include <unistd.h>
-
 #include "SpeedtestUploadTest.h"
 #include "SpeedtestConfig.h"
 #include "SpeedtestServers.h"
 #include "Speedtest.h"
 #include "http.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/time.h>
+#include <string.h>
 
 static void __appendTimestamp(const char *url, char *buff, int buff_len)
 {

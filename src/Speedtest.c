@@ -3,21 +3,17 @@
 
 	Michał Obrembski (byku@byku.com.pl)
 */
-#include <arpa/inet.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <string.h>
-#include <time.h>
-#include <pthread.h>
-#include <unistd.h>
 #include "http.h"
 #include "SpeedtestConfig.h"
 #include "SpeedtestServers.h"
 #include "Speedtest.h"
 #include "SpeedtestDownloadTest.h"
 #include "SpeedtestUploadTest.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/time.h>
+#include <string.h>
 
 // strdup isnt a C99 function, so we need it to define itself
 char *strdup(const char *str)

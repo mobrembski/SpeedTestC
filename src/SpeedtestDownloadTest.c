@@ -1,16 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/time.h>
-#include <string.h>
-#include <time.h>
-#include <pthread.h>
-#include <unistd.h>
-
 #include "SpeedtestDownloadTest.h"
 #include "SpeedtestConfig.h"
 #include "SpeedtestServers.h"
 #include "Speedtest.h"
 #include "http.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/time.h>
+#include <string.h>
 
 static void *__downloadThread(void *arg)
 {
