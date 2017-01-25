@@ -5,19 +5,26 @@
 #define PI 3.1415926536
 #define TO_RAD (PI / 180)
 
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(_x) \
+	(sizeof(_x) / sizeof(_x[0]))
+#endif /* ARRAY_SIZE */
+
+typedef struct ThreadConfig {
+	int count; /* number of threads */
+	int length; /* testlength? */
+} THREADCONFIG_T;
+
 typedef struct speedtestConfig
 {
 	char ip[15];
 	float lat;
 	float lon;
 	char isp[255];
-
+	THREADCONFIG_T uploadThreadConfig;
+	THREADCONFIG_T downloadThreadConfig;
 } SPEEDTESTCONFIG_T;
 
-const char *ConfigLineIdentitier;
-const short ConfigParseFieldsNumber;
-SPEEDTESTCONFIG_T *parseConfig(const char *configline);
 SPEEDTESTCONFIG_T *getConfig();
-int* func (int *func);
 long haversineDistance(float lat1, float lon1, float lat2, float lon2);
 #endif

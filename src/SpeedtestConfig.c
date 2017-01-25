@@ -10,8 +10,7 @@
 #include "http.h"
 #include "url.h"
 
-const char *ConfigLineIdentitier = "<client";
-const short ConfigParseFieldsNumber = 4;
+const char *ConfigLineIdentitier[] = {"<client", "<upload", "<server-config", "<download"};
 
 long haversineDistance(float lat1, float lon1, float lat2, float lon2)
 {
@@ -31,39 +30,121 @@ long haversineDistance(float lat1, float lon1, float lat2, float lon2)
 #endif
 }
 
-SPEEDTESTCONFIG_T *parseConfig(const char *configline)
+static void getValue(const char* _str, const char* _key, char* _value)
 {
-    char lat[8];
-    char lon[8];
-    SPEEDTESTCONFIG_T *result = malloc(sizeof(struct speedtestConfig));
-    if(sscanf(configline,"%*[^\"]\"%15[^\"]\"%*[^\"]\"%15[^\"]\"%*[^\"]\"%15[^\"]\"%*[^\"]\"%255[^\"]\"",
-            result->ip, lat, lon, result->isp)!=ConfigParseFieldsNumber)
-    {
-        fprintf(stderr,"Cannot parse all fields! Config line: %s", configline);
-        return NULL;
-    }
-    result->lat = strtof(lat, NULL);
-    result->lon = strtof(lon, NULL);
-    return result;
+		do {
+			char *p, *e;
+			if ((p = strstr(_str, _key)) != NULL) {
+				p += sizeof(_key); /* With an extra " */
+				e = strchr(p, '"');
+				if (e)
+					strncpy(_value, p, e - p);
+			}
+		} while (0);
+}
+
+static void parseClient(const char *configline, SPEEDTESTCONFIG_T **result_p)
+{
+	SPEEDTESTCONFIG_T *result = *result_p;
+	char lat[8];
+	char lon[8];
+
+	if(sscanf(configline,"%*[^\"]\"%15[^\"]\"%*[^\"]\"%15[^\"]\"%*[^\"]\"%15[^\"]\"%*[^\"]\"%255[^\"]\"",
+					result->ip, lat, lon, result->isp)!=4)
+	{
+			fprintf(stderr,"Cannot parse all fields! Config line: %s", configline);
+			exit(1);
+	}
+	result->lat = strtof(lat, NULL);
+	result->lon = strtof(lon, NULL);
+}
+
+static void parseUpload(const char *configline, SPEEDTESTCONFIG_T **result_p)
+{
+	SPEEDTESTCONFIG_T *result = *result_p;
+	char threads[8] = {"3"}, testlength[8] = {"9"};
+
+	getValue(configline, "testlength=", testlength);
+	getValue(configline, "threads=", threads);
+
+	result->uploadThreadConfig.count = atoi(threads);
+	result->uploadThreadConfig.length = atoi(testlength);
+}
+
+static void parseDownload(const char *configline, SPEEDTESTCONFIG_T **result_p)
+{
+	SPEEDTESTCONFIG_T *result = *result_p;
+	char threadcount[8] = {"3"};
+
+	getValue(configline, "threadcount=", threadcount);
+
+	result->downloadThreadConfig.count = atoi(threadcount);
+}
+
+static void parseServerConfig(const char *configline, SPEEDTESTCONFIG_T **result_p)
+{
+	SPEEDTESTCONFIG_T *result = *result_p;
+	char threadcount[8] = {"3"};
+
+	getValue(configline, "threadcount=", threadcount);
+
+	result->downloadThreadConfig.count = atoi(threadcount);
 }
 
 SPEEDTESTCONFIG_T *getConfig()
 {
-    SPEEDTESTCONFIG_T *result;
+    SPEEDTESTCONFIG_T *result = NULL;
     char buffer[0xFFFF] = {0};
+		int i, parsed = 0;
+    long size;
+		void (*parsefuncs[])(const char *configline, SPEEDTESTCONFIG_T **result_p)
+							= { parseClient, parseUpload, parseDownload, parseServerConfig };
     int sockId = httpGetRequestSocket("http://www.speedtest.net/speedtest-config.php");
-    if(sockId) {
-        long size;
-        while((size = recvLine(sockId, buffer, sizeof(buffer))) > 0)
-        {
-            buffer[size + 1] = '\0';
-            if(strncmp(buffer, ConfigLineIdentitier, strlen(ConfigLineIdentitier)) == 0)
-            {
-                result = parseConfig(buffer);
-                httpClose(sockId);
-                return result;
-            }
-        }
+
+		if(!sockId)
+		{
+			return NULL; /* Cannot connect to server */
+		}
+
+    while((size = recvLine(sockId, buffer, sizeof(buffer))) > 0)
+    {
+      buffer[size + 1] = '\0';
+      for (i = 0; i < ARRAY_SIZE(ConfigLineIdentitier); i++)
+			{
+      	if(strncmp(buffer, ConfigLineIdentitier[i], strlen(ConfigLineIdentitier[i])))
+				{
+					continue;
+				}
+
+				if (!result) {
+					result = malloc(sizeof(struct speedtestConfig));
+					if (!result) {
+						/* Out of memory */
+						return NULL;
+					}
+				}
+				parsefuncs[i](buffer, &result);
+        if (i == 0) {
+        	/* The '<client' one is required */
+					parsed += ARRAY_SIZE(ConfigLineIdentitier);
+      	}
+				parsed++;
+        break;
+    	}
+
+      if (parsed == ARRAY_SIZE(ConfigLineIdentitier) * 2) {
+				break;
+      }
     }
-    return NULL;
+
+      /* Cleanup */
+		httpClose(sockId);
+		if ((parsed < ARRAY_SIZE(ConfigLineIdentitier))
+			&& result) {
+			/* The required one is missing, we won't continue */
+			free(result);
+			result = NULL;
+		}
+
+		return result;
 }
