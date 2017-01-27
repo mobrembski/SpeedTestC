@@ -33,15 +33,15 @@ long haversineDistance(float lat1, float lon1, float lat2, float lon2)
 
 static void getValue(const char* _str, const char* _key, char* _value)
 {
-		do {
-			char *p, *e;
-			if ((p = strstr(_str, _key)) != NULL) {
-				p += sizeof(_key); /* With an extra " */
-				e = strchr(p, '"');
-				if (e)
-					strncpy(_value, p, e - p);
-			}
-		} while (0);
+	char *beginning, *end;
+	if ((beginning = strstr(_str, _key)) != NULL) {
+		beginning += strlen(_key); /* With an extra " */
+		end = strchr(beginning, '"');
+		if (end)
+    {
+			strncpy(_value, beginning, end - beginning);
+    }
+	}
 }
 
 static void parseClient(const char *configline, SPEEDTESTCONFIG_T **result_p)
