@@ -3,17 +3,30 @@
 
 	Michał Obrembski (byku@byku.com.pl)
 */
-#include <arpa/inet.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <string.h>
-#include <time.h>
 #include "http.h"
 #include "SpeedtestConfig.h"
 #include "SpeedtestServers.h"
 #include "Speedtest.h"
+#include "SpeedtestLatencyTest.h"
+#include "SpeedtestDownloadTest.h"
+#include "SpeedtestUploadTest.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/time.h>
+#include <string.h>
+
+// strdup isnt a C99 function, so we need it to define itself
+char *strdup(const char *str)
+{
+    int n = strlen(str) + 1;
+    char *dup = malloc(n);
+    if(dup)
+    {
+        strcpy(dup, str);
+    }
+    return dup;
+}
 
 int sortServers(SPEEDTESTSERVER_T **srv1, SPEEDTESTSERVER_T **srv2)
 {
@@ -71,6 +84,7 @@ void parseCmdLine(int argc, char **argv) {
 
 void freeMem()
 {
+    free(latencyUrl);
     free(downloadUrl);
     free(uploadUrl);
     free(serverList);
@@ -134,85 +148,45 @@ void getBestServer()
     }
 }
 
-void testDownload(const char *url)
+static void getUserDefinedServer()
 {
-  int testNum;
-  totalTransfered = 0;
-  gettimeofday(&tval_start, NULL);
-  for (testNum = 0; testNum < totalDownloadTestCount; testNum++) {
-    size = -1;
-    /* Testing download... */
-    sockId = httpGetRequestSocket(url);
-    if(sockId == 0)
-    {
-        printf("Unable to open socket for Download!");
-        freeMem();
-        exit(1);
-    }
+    /* When user specify server URL, then we're not downloading config,
+    so we need to specify thread count */
+    speedTestConfig = malloc(sizeof(struct speedtestConfig));
+    speedTestConfig->downloadThreadConfig.threadsCount = 4;
+    speedTestConfig->uploadThreadConfig.threadsCount = 2;
+    speedTestConfig->uploadThreadConfig.length = 3;
 
-    while(size != 0)
-    {
-        size = httpRecv(sockId, buffer, BUFFER_SIZE);
-        totalTransfered += size;
-    }
-    httpClose(sockId);
-  }
-  elapsedSecs = getElapsedTime(tval_start);
-  speed = (totalTransfered / elapsedSecs) / 1024;
-    printf("Bytes %lu downloaded in %.2f seconds %.2f kB/s (%.2f kb/s)\n",
-        totalTransfered, elapsedSecs, speed, speed * 8);
-}
-
-void testUpload(const char *url)
-{
-    /* Testing upload... */
-    totalTransfered = totalToBeTransfered;
-    sockId = httpPutRequestSocket(uploadUrl, totalToBeTransfered);
-    if(sockId == 0)
-    {
-        printf("Unable to open socket for Upload!");
-        freeMem();
-        exit(1);
-    }
-    gettimeofday(&tval_start, NULL);
-    while(totalTransfered != 0)
-    {
-        for(i=0; i < BUFFER_SIZE; i++)
-            buffer[i] = (char)i;
-        size = httpSend(sockId, buffer, BUFFER_SIZE);
-        /* To check for unsigned overflow */
-        if(totalTransfered < size)
-            break;
-        totalTransfered -= size;
-    }
-    elapsedSecs = getElapsedTime(tval_start);
-    speed = (totalToBeTransfered / elapsedSecs) / 1024;
-    httpClose(sockId);
-    printf("Bytes %lu uploaded in %.2f seconds %.2f kB/s (%.2f kb/s)\n",
-        totalToBeTransfered, elapsedSecs, speed, speed * 8);
+    uploadUrl = downloadUrl;
+    tmpUrl = malloc(sizeof(char) * strlen(downloadUrl) + 1);
+    strcpy(tmpUrl, downloadUrl);
+    downloadUrl = getServerDownloadUrl(tmpUrl);
+    free(tmpUrl);
 }
 
 int main(int argc, char **argv)
 {
-    speedTestConfig = NULL;
-    parseCmdLine(argc, argv);
+  totalTransfered = 1024 * 1024;
+  totalToBeTransfered = 1024 * 1024;
+  totalDownloadTestCount = 1;
+  randomizeBestServers = 0;
+  speedTestConfig = NULL;
+  parseCmdLine(argc, argv);
 
-    if(downloadUrl == NULL)
-    {
-        getBestServer();
-    }
-    else
-    {
-        uploadUrl = downloadUrl;
-        tmpUrl = malloc(sizeof(char) * strlen(downloadUrl) + 1);
-        strcpy(tmpUrl, downloadUrl);
-        downloadUrl = getServerDownloadUrl(tmpUrl);
-        free(tmpUrl);
-    }
+  if(downloadUrl == NULL)
+  {
+      getBestServer();
+  }
+  else
+  {
+      getUserDefinedServer();
+  }
 
-    testDownload(downloadUrl);
-    testUpload(uploadUrl);
+  latencyUrl = getLatencyUrl(uploadUrl);
+  testLatency(latencyUrl);
+  testDownload(downloadUrl);
+  testUpload(uploadUrl);
 
-    freeMem();
-    return 0;
+  freeMem();
+  return 0;
 }

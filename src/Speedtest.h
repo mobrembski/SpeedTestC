@@ -1,20 +1,34 @@
 #ifndef _SPEEDTEST_
 #define _SPEEDTEST_
+
+#include <time.h>
+#include <pthread.h>
+
 #define SPEED_TEST_FILE_SIZE 31625365
-#define BUFFER_SIZE 1500
+#define BUFFER_SIZE 1500000
 SPEEDTESTCONFIG_T *speedTestConfig;
 SPEEDTESTSERVER_T **serverList;
-int serverCount = 0;
+int serverCount;
 int i, size, sockId;
-unsigned totalDownloadTestCount = 1;
-char buffer[BUFFER_SIZE] = {0};
-char *downloadUrl = NULL;
-char *tmpUrl = NULL;
-char *uploadUrl = NULL;
-unsigned long totalTransfered = 1024 * 1024;
-unsigned long totalToBeTransfered = 1024 * 1024;
+unsigned totalDownloadTestCount;
+char buffer[BUFFER_SIZE];
+char *downloadUrl;
+char *tmpUrl;
+char *uploadUrl;
+char *latencyUrl;
+unsigned long totalTransfered;
+unsigned long totalToBeTransfered;
 struct timeval tval_start;
-float elapsedSecs, speed;
-int randomizeBestServers = 0;
-int quietMode = 0;
+float elapsedSecs;
+int randomizeBestServers;
+typedef struct thread_args {
+  pthread_t tid;
+  char *url;
+  unsigned int testCount;
+  unsigned long transferedBytes;
+  float elapsedSecs;
+} THREADARGS_T;
+
+float getElapsedTime(struct timeval tval_start);
+char *strdup(const char *str);
 #endif
