@@ -7,6 +7,7 @@
 #include "SpeedtestConfig.h"
 #include "SpeedtestServers.h"
 #include "Speedtest.h"
+#include "SpeedtestLatencyTest.h"
 #include "SpeedtestDownloadTest.h"
 #include "SpeedtestUploadTest.h"
 
@@ -83,6 +84,7 @@ void parseCmdLine(int argc, char **argv) {
 
 void freeMem()
 {
+    free(latencyUrl);
     free(downloadUrl);
     free(uploadUrl);
     free(serverList);
@@ -146,6 +148,22 @@ void getBestServer()
     }
 }
 
+static void getUserDefinedServer()
+{
+    /* When user specify server URL, then we're not downloading config,
+    so we need to specify thread count */
+    speedTestConfig = malloc(sizeof(struct speedtestConfig));
+    speedTestConfig->downloadThreadConfig.threadsCount = 4;
+    speedTestConfig->uploadThreadConfig.threadsCount = 2;
+    speedTestConfig->uploadThreadConfig.length = 3;
+
+    uploadUrl = downloadUrl;
+    tmpUrl = malloc(sizeof(char) * strlen(downloadUrl) + 1);
+    strcpy(tmpUrl, downloadUrl);
+    downloadUrl = getServerDownloadUrl(tmpUrl);
+    free(tmpUrl);
+}
+
 int main(int argc, char **argv)
 {
   totalTransfered = 1024 * 1024;
@@ -161,13 +179,11 @@ int main(int argc, char **argv)
   }
   else
   {
-      uploadUrl = downloadUrl;
-      tmpUrl = malloc(sizeof(char) * strlen(downloadUrl) + 1);
-      strcpy(tmpUrl, downloadUrl);
-      downloadUrl = getServerDownloadUrl(tmpUrl);
-      free(tmpUrl);
+      getUserDefinedServer();
   }
 
+  latencyUrl = getLatencyUrl(uploadUrl);
+  testLatency(latencyUrl);
   testDownload(downloadUrl);
   testUpload(uploadUrl);
 
