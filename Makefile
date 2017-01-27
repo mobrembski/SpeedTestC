@@ -4,6 +4,7 @@ LIBS = -lm -lpthread
 OBJS = src/Speedtest.c \
 	src/SpeedtestConfig.c \
 	src/SpeedtestServers.c \
+	src/SpeedtestLatencyTest.c \
 	src/SpeedtestDownloadTest.c \
 	src/SpeedtestUploadTest.c \
 	src/url.c \

@@ -15,6 +15,7 @@ char buffer[BUFFER_SIZE];
 char *downloadUrl;
 char *tmpUrl;
 char *uploadUrl;
+char *latencyUrl;
 unsigned long totalTransfered;
 unsigned long totalToBeTransfered;
 struct timeval tval_start;
