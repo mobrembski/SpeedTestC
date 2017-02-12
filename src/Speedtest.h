@@ -5,7 +5,7 @@
 #include <pthread.h>
 
 #define SPEED_TEST_FILE_SIZE 31625365
-#define BUFFER_SIZE 1500000
+#define BUFFER_SIZE 1500
 SPEEDTESTCONFIG_T *speedTestConfig;
 SPEEDTESTSERVER_T **serverList;
 int serverCount;
