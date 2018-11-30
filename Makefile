@@ -1,7 +1,7 @@
-CC = gcc
+CC = cc
 CFLAGS = -O0 -g -std=c99 -Wall
 LIBS = -lm -lpthread
-OBJS = src/Speedtest.c \
+SRCS = src/Speedtest.c \
 	src/SpeedtestConfig.c \
 	src/SpeedtestServers.c \
 	src/SpeedtestLatencyTest.c \
@@ -12,8 +12,8 @@ OBJS = src/Speedtest.c \
 
 all:	SpeedTestC
 
-SpeedTestC: $(OBJS)
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+SpeedTestC: $(SRCS)
+	$(CC) -o $@ $(SRCS) $(CFLAGS) $(LIBS)
 
 test:	SpeedTestC
 	valgrind --leak-check=full --show-leak-kinds=all ./SpeedTestC --server http://speedtest.skynet.net.pl/speedtest/upload.php
