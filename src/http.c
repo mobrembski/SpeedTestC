@@ -9,6 +9,8 @@
 #include <netdb.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include "url.h"
 #include "http.h"
 
@@ -112,7 +114,7 @@ int httpGet(char* pAddress, int pPort, char* pRequest)
 
 	}
 
-	if(!success == 1)
+	if(!success)
 	{
 		close(sockId);
 		return 0;
