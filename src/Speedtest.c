@@ -104,11 +104,11 @@ void getBestServer()
     printf("Your IP: %s And ISP: %s\n",
                 speedTestConfig->ip, speedTestConfig->isp);
     printf("Lat: %f Lon: %f\n", speedTestConfig->lat, speedTestConfig->lon);
-    serverList = getServers(&serverCount, "http://www.speedtest.net/speedtest-servers-static.php");
+    serverList = getServers(&serverCount, URL_PROTOCOL "://www.speedtest.net/speedtest-servers-static.php");
     if (serverCount == 0)
     {
         // Primary server is not responding. Let's give a try with secondary one.
-        serverList = getServers(&serverCount, "http://c.speedtest.net/speedtest-servers-static.php");
+        serverList = getServers(&serverCount, URL_PROTOCOL "://c.speedtest.net/speedtest-servers-static.php");
     }
     printf("Grabbed %d servers\n", serverCount);
     if (serverCount == 0)
@@ -172,6 +172,12 @@ int main(int argc, char **argv)
   randomizeBestServers = 0;
   speedTestConfig = NULL;
   parseCmdLine(argc, argv);
+
+#ifdef OPENSSL
+  SSL_library_init();
+  SSL_load_error_strings();
+  OpenSSL_add_all_algorithms();
+#endif
 
   if(downloadUrl == NULL)
   {

@@ -16,7 +16,7 @@ void breakUrl(const char* pUrl, URLPARTS_T* pUrlStruct)
     char *ptr2, *ptr1 = url;
     strncpy(url, pUrl, sizeof(url));
     pUrlStruct->port = 80;
-
+    pUrlStruct->ssl = 0;
 /*find protocol (like http:// or ftp://)*/
     ptr2 = strstr(ptr1, "://");
     if(ptr2 != 0)
@@ -27,7 +27,10 @@ void breakUrl(const char* pUrl, URLPARTS_T* pUrlStruct)
 
         if(strcmp(ptr1, "ftp") == 0)
             pUrlStruct->port = 21;
-
+        else if(strcmp(ptr1, "https") == 0) {
+            pUrlStruct->port = 443;
+	    pUrlStruct->ssl = 1;
+	}
         ptr1 = ptr2 + 3;
     } else if(pUrlStruct->protocolLen > 0)
     *pUrlStruct->protocol = 0;

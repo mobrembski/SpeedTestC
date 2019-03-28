@@ -10,6 +10,7 @@ typedef struct
     char* protocol;
     int protocolLen;
     int port;
+    int ssl;
 } URLPARTS_T;
 
 void decodeRequest(const char* pRequest, char* pOut, int pOutSize);

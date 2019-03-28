@@ -62,7 +62,7 @@ SPEEDTESTSERVER_T **getServers(int *serverCount, const char *infraUrl)
 {
     char buffer[1500] = {0};
     SPEEDTESTSERVER_T **list = NULL;
-    int sockId = httpGetRequestSocket(infraUrl);
+    sock_t sockId = httpGetRequestSocket(infraUrl);
     if(sockId) {
         long size;
         while((size = recvLine(sockId, buffer, sizeof(buffer))) > 0)

@@ -14,7 +14,8 @@ which contains 10 chars: "test=test\n"*/
 void testLatency(const char *url)
 {
   char buffer[LATENCY_SIZE] = {0};
-  int sockId, size = -1;
+  sock_t sockId;
+  int size = -1;
 	struct timeval tval_start;
 
   gettimeofday(&tval_start, NULL);
