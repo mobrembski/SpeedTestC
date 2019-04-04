@@ -11,6 +11,12 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+
+#ifdef OPENSSL
+#include <openssl/ssl.h>
+#include <openssl/bio.h>
+#endif
+
 #include "url.h"
 #include "http.h"
 
@@ -21,12 +27,40 @@ int httpLastError()
 	return _httpErrorCode;
 }
 
-int httpPut(char* pAddress, int pPort, char* pRequest, unsigned long contentSize)
+#ifdef OPENSSL
+static BIO *bioWrap(int s, int ssl, int client)
+{
+    BIO *bio = BIO_new_socket(s, BIO_CLOSE);
+    if (ssl) {
+			SSL_CTX *ctx;
+			BIO *sslbio;
+			if (client)
+			    ctx = SSL_CTX_new(TLS_client_method());
+			else
+			    ctx = SSL_CTX_new(TLS_server_method());
+			if (!ctx) {
+			    return NULL;		/* XXX complain */
+			}
+
+			sslbio = BIO_new_ssl(ctx, client);
+			if (!sslbio) {
+			    return NULL;		/* XXX complain */
+	}
+
+	// layer SSL over socket
+	bio = BIO_push(sslbio, bio);
+    }
+    return bio;
+}
+#endif
+
+sock_t httpPut(char* pAddress, int pPort, char* pRequest, unsigned long contentSize, int ssl)
 {
 	char buffer[0xFFFF];
 	int sockId;
 	struct sockaddr_in addr;
 	struct hostent*  hostEntry;
+
 	if ((sockId = (int)socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == 0)
 		return 0;
 
@@ -36,9 +70,9 @@ int httpPut(char* pAddress, int pPort, char* pRequest, unsigned long contentSize
 	addr.sin_family = AF_INET;
 	addr.sin_addr = *((struct in_addr*)*hostEntry->h_addr_list);
 	addr.sin_port = htons((unsigned short)pPort);
-	if (connect(sockId, (struct sockaddr*)&addr, 
+	if (connect(sockId, (struct sockaddr*)&addr,
 		sizeof(struct sockaddr_in)) == -1)
-		return 0;
+			return 0;
 
 	/* TODO: Content-Length isn't set up, this is some kind of "hack".
 	 I cannot understand, but some servers closes up connection too early
@@ -51,21 +85,30 @@ int httpPut(char* pAddress, int pPort, char* pRequest, unsigned long contentSize
 			"Connection: keep-alive\r\n"
 			"Content-Length: %lu\r\n"
 			"\r\n", pRequest, pAddress, 100*contentSize);
+
+#ifdef OPENSSL
+	sock_t sock = bioWrap(sockId, ssl, 1);
+	BIO_write(sock, buffer, strlen(buffer));
+
+	return sock;
+#else
 	send(sockId, buffer, strlen(buffer), 0);
 
 	return sockId;
+#endif
 }
 
-int httpGet(char* pAddress, int pPort, char* pRequest)
+sock_t httpGet(char* pAddress, int pPort, char* pRequest, int ssl)
 {
 	char buffer[0xFFFF], *token;
-	int sockId;
+	sock_t sockId;
+	int s;
 	struct sockaddr_in addr;
 	struct hostent*  hostEntry;
 	int length = 0;
 	int success = 0;
 	int i;
-	if ((sockId = (int)socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == 0)
+	if ((s = (int)socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == 0)
 		return 0;
 
 	if ((hostEntry = gethostbyname(pAddress)) == NULL)
@@ -74,7 +117,7 @@ int httpGet(char* pAddress, int pPort, char* pRequest)
 	addr.sin_family = AF_INET;
 	addr.sin_addr = *((struct in_addr*)*hostEntry->h_addr_list);
 	addr.sin_port = htons((unsigned short)pPort);
-	if (connect(sockId, (struct sockaddr*)&addr, 
+	if (connect(s, (struct sockaddr*)&addr,
 		sizeof(struct sockaddr_in)) == -1)
 		return 0;
 
@@ -83,7 +126,14 @@ int httpGet(char* pAddress, int pPort, char* pRequest)
 			"User-Agent: SPEEDTEST_CLIENT\r\n"
 			"Connection: close\r\n"
 			"\r\n", pRequest, pAddress);
+
+#ifdef OPENSSL
+	sockId = bioWrap(s, ssl, 1);
+	BIO_write(sockId, buffer, strlen(buffer));
+#else
+	sockId = s;
 	send(sockId, buffer, strlen(buffer), 0);
+#endif
 
 	while((length = recvLine(sockId, buffer, sizeof(buffer))) > 0)
 	{
@@ -116,38 +166,56 @@ int httpGet(char* pAddress, int pPort, char* pRequest)
 
 	if(!success)
 	{
+#ifdef OPENSSL
+		BIO_free_all(sockId);
+#else
 		close(sockId);
+#endif
 		return 0;
 	} else return sockId;
 }
 
-int httpRecv(int pSockId, char* pOut, int pOutSize)
+int httpRecv(sock_t pSockId, char* pOut, int pOutSize)
 {
 	int size;
+#ifdef OPENSSL
+	if((size = BIO_read(pSockId, pOut, pOutSize)) > 0)
+		return size;
+#else
 	if((size = recv(pSockId, pOut, pOutSize, 0)) > 0)
 		return size;
+#endif
 	return 0;
 }
 
-int httpSend(int pSockId, char* pOut, int pOutSize)
+int httpSend(sock_t pSockId, char* pOut, int pOutSize)
 {
 	int size;
+#ifdef OPENSSL
+	if((size = BIO_write(pSockId, pOut, pOutSize)) > 0)
+		return size;
+#else
 	if((size = send(pSockId, pOut, pOutSize, 0)) > 0)
 		return size;
+#endif
 	return 0;
 }
 
-void httpClose(int pSockId)
+void httpClose(sock_t pSockId)
 {
+#ifdef OPENSSL
+	BIO_free_all(pSockId);
+#else
 	close(pSockId);
+#endif
 }
 
-int httpGetRequestSocket(const char *urlToDownload)
+sock_t httpGetRequestSocket(const char *urlToDownload)
 {
 	char address[1024];
 	char request[1024];
 	URLPARTS_T url;
-	int sockId;
+	sock_t sockId;
 
 	memset(&url, 0, sizeof(url));
 	url.address = address;
@@ -155,9 +223,12 @@ int httpGetRequestSocket(const char *urlToDownload)
 	url.addressLen = sizeof(address);
 	url.requestLen = sizeof(request);
 
+#ifdef TRACE
+	printf("GET %s\n", urlToDownload);
+#endif
 	breakUrl(urlToDownload, &url);
 
-	sockId = httpGet(address, url.port, request);
+	sockId = httpGet(address, url.port, request, url.ssl);
 	if(sockId)
 		return sockId;
 	fprintf(stderr, "Http error while creating GET request socket: %i\n",
@@ -165,12 +236,12 @@ int httpGetRequestSocket(const char *urlToDownload)
 	return 0;
 }
 
-int httpPutRequestSocket(const char *urlToUpload, unsigned long contentSize)
+sock_t httpPutRequestSocket(const char *urlToUpload, unsigned long contentSize)
 {
 	char address[1024];
 	char request[1024];
 	URLPARTS_T url;
-	int sockId;
+	sock_t sockId;
 
 	memset(&url, 0, sizeof(url));
 	url.address = address;
@@ -178,24 +249,37 @@ int httpPutRequestSocket(const char *urlToUpload, unsigned long contentSize)
 	url.addressLen = sizeof(address);
 	url.requestLen = sizeof(request);
 
+#ifdef TRACE
+	printf("PUT %s\n", urlToUpload);
+#endif
 	breakUrl(urlToUpload, &url);
 
-	sockId = httpPut(address, url.port, request, contentSize);
-	if(sockId)
+	sockId = httpPut(address, url.port, request, contentSize, url.ssl);
+	if(sockId != BAD_SOCKID)
 		return sockId;
 	fprintf(stderr, "Http error while creating PUT request socket: %i\n",
 		httpLastError());
-	return 0;
+	return BAD_SOCKID;
 }
 
-int recvLine(int pSockId, char* pOut, int pOutSize)
+static int
+sockRecv(sock_t pSockId, char *ptr, int len)
+{
+#ifdef OPENSSL
+    return BIO_read(pSockId, ptr, len);
+#else
+    return recv(pSockId, ptr, len, 0);
+#endif
+}
+
+int recvLine(sock_t pSockId, char* pOut, int pOutSize)
 {
 	int received = 0;
 	char letter;
 	memset(pOut, 0, pOutSize);
 	for(; received < pOutSize - 1; received++)
 	{
-		if(recv(pSockId, (char*)&letter, 1, 0) > 0)
+		if(sockRecv(pSockId, (char*)&letter, 1) > 0)
 		{
 			pOut[received] = letter;
 			if(letter == '\n')
