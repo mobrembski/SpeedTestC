@@ -15,6 +15,7 @@
 #ifdef OPENSSL
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
+#include <openssl/opensslv.h>
 #endif
 
 #include "url.h"
@@ -34,10 +35,17 @@ static BIO *bioWrap(int s, int ssl, int client)
     if (ssl) {
 			SSL_CTX *ctx;
 			BIO *sslbio;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 			if (client)
-			    ctx = SSL_CTX_new(TLS_client_method());
+			    ctx = SSL_CTX_new(TLSv1_2_client_method());
 			else
-			    ctx = SSL_CTX_new(TLS_server_method());
+			    ctx = SSL_CTX_new(TLSv1_2_server_method());
+#else
+			if (client)
+					ctx = SSL_CTX_new(TLS_client_method());
+			else
+					ctx = SSL_CTX_new(TLS_server_method());
+#endif
 			if (!ctx) {
 			    return NULL;		/* XXX complain */
 			}
