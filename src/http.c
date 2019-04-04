@@ -32,19 +32,19 @@ static BIO *bioWrap(int s, int ssl, int client)
 {
     BIO *bio = BIO_new_socket(s, BIO_CLOSE);
     if (ssl) {
-	SSL_CTX *ctx;
-	BIO *sslbio;
-	if (client)
-	    ctx = SSL_CTX_new(TLSv1_client_method());
-	else
-	    ctx = SSL_CTX_new(TLSv1_server_method());
-	if (!ctx) {
-	    return NULL;		/* XXX complain */
-	}
+			SSL_CTX *ctx;
+			BIO *sslbio;
+			if (client)
+			    ctx = SSL_CTX_new(TLS_client_method());
+			else
+			    ctx = SSL_CTX_new(TLS_server_method());
+			if (!ctx) {
+			    return NULL;		/* XXX complain */
+			}
 
-	sslbio = BIO_new_ssl(ctx, client);
-	if (!sslbio) {
-	    return NULL;		/* XXX complain */
+			sslbio = BIO_new_ssl(ctx, client);
+			if (!sslbio) {
+			    return NULL;		/* XXX complain */
 	}
 
 	// layer SSL over socket
@@ -70,9 +70,9 @@ sock_t httpPut(char* pAddress, int pPort, char* pRequest, unsigned long contentS
 	addr.sin_family = AF_INET;
 	addr.sin_addr = *((struct in_addr*)*hostEntry->h_addr_list);
 	addr.sin_port = htons((unsigned short)pPort);
-	if (connect(sockId, (struct sockaddr*)&addr, 
+	if (connect(sockId, (struct sockaddr*)&addr,
 		sizeof(struct sockaddr_in)) == -1)
-		return 0;
+			return 0;
 
 	/* TODO: Content-Length isn't set up, this is some kind of "hack".
 	 I cannot understand, but some servers closes up connection too early
@@ -93,7 +93,7 @@ sock_t httpPut(char* pAddress, int pPort, char* pRequest, unsigned long contentS
 	return sock;
 #else
 	send(sockId, buffer, strlen(buffer), 0);
-	
+
 	return sockId;
 #endif
 }
@@ -117,7 +117,7 @@ sock_t httpGet(char* pAddress, int pPort, char* pRequest, int ssl)
 	addr.sin_family = AF_INET;
 	addr.sin_addr = *((struct in_addr*)*hostEntry->h_addr_list);
 	addr.sin_port = htons((unsigned short)pPort);
-	if (connect(s, (struct sockaddr*)&addr, 
+	if (connect(s, (struct sockaddr*)&addr,
 		sizeof(struct sockaddr_in)) == -1)
 		return 0;
 
@@ -224,7 +224,7 @@ sock_t httpGetRequestSocket(const char *urlToDownload)
 	url.requestLen = sizeof(request);
 
 #ifdef TRACE
-	printf("GET %s\n", urlToDownload);	
+	printf("GET %s\n", urlToDownload);
 #endif
 	breakUrl(urlToDownload, &url);
 
