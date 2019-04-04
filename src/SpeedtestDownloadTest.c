@@ -20,7 +20,7 @@ static void *__downloadThread(void *arg)
 	for (testNum = 0; testNum < threadConfig->testCount; testNum++)
   {
 		int size = -1;
-		int sockId = httpGetRequestSocket(threadConfig->url);
+		sock_t sockId = httpGetRequestSocket(threadConfig->url);
 
 		if(sockId == 0)
 		{

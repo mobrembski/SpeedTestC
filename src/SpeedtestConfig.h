@@ -5,6 +5,10 @@
 #define PI 3.1415926536
 #define TO_RAD (PI / 180)
 
+#ifndef URL_PROTOCOL
+#define URL_PROTOCOL "http"
+#endif
+
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(_x) \
 	(sizeof(_x) / sizeof(_x[0]))

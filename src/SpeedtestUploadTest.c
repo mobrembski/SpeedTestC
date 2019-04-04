@@ -25,10 +25,11 @@ static void *__uploadThread(void *arg)
 	THREADARGS_T *threadConfig = (THREADARGS_T *)arg;
 	char alphabet[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	char buffer[BUFFER_SIZE] = {0};
-	int i, size, sockId;
+	int i, size;
 	struct timeval tval_start;
 	unsigned long totalTransfered = 0;
 	char uploadUrl[1024];
+	sock_t sockId;
 
 	/* Build the random buffer */
   srand(time(NULL));

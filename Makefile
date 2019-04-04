@@ -1,6 +1,11 @@
+# comment out to build w/o OPENSSL support (won't work w/ www.speedtest.net)
+OPENSSL_CFLAGS = -DOPENSSL -DURL_PROTOCOL='"https"'
+OPENSSL_LIBS = -lssl -lcrypto
+
 CC = cc
-CFLAGS = -O0 -g -std=c99 -Wall
-LIBS = -lm -lpthread
+CFLAGS = -O3 -g -std=c99 -Wall $(OPENSSL_CFLAGS)
+LIBS = -lm -lpthread $(OPENSSL_LIBS)
+
 SRCS = src/Speedtest.c \
 	src/SpeedtestConfig.c \
 	src/SpeedtestServers.c \

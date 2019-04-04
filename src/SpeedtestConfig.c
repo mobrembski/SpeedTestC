@@ -100,7 +100,7 @@ SPEEDTESTCONFIG_T *getConfig()
     long size;
 		void (*parsefuncs[])(const char *configline, SPEEDTESTCONFIG_T **result_p)
 							= { parseClient, parseUpload, parseDownload, parseServerConfig };
-    int sockId = httpGetRequestSocket("http://www.speedtest.net/speedtest-config.php");
+    sock_t sockId = httpGetRequestSocket(URL_PROTOCOL "://www.speedtest.net/speedtest-config.php");
 
 		if(!sockId)
 		{
