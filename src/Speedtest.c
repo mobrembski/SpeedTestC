@@ -28,9 +28,14 @@ char *strdup(const char *str)
     return dup;
 }
 
-int sortServers(SPEEDTESTSERVER_T **srv1, SPEEDTESTSERVER_T **srv2)
+int sortServersDistance(SPEEDTESTSERVER_T **srv1, SPEEDTESTSERVER_T **srv2)
 {
     return((*srv1)->distance - (*srv2)->distance);
+}
+
+int sortServersLatency(SPEEDTESTSERVER_T **srv1, SPEEDTESTSERVER_T **srv2)
+{
+    return (*srv1)->latency - (*srv2)->latency;
 }
 
 float getElapsedTime(struct timeval tval_start) {
@@ -53,11 +58,14 @@ void parseCmdLine(int argc, char **argv) {
         {
             printf("Usage (options are case sensitive):\n\
             \t--help - Show this help.\n\
-            \t--server URL - use server URL, don'read config.\n\
+            \t--server URL - use server URL, don't read config.\n\
             \t--upsize SIZE - use upload size of SIZE bytes.\n\
             \t--downtimes TIMES - how many times repeat download test.\n\
-            \tSingle download test is downloading 30MB file.\n\
-            \t--randomize NUMBER - randomize server usage for NUMBER of best servers\n\
+            \t\tSingle download test is downloading 30MB file.\n\
+            \t--lowestlatency NUMBER - pick server with lowest latency\n\
+            \t\tamong NUMBER closest\n\
+            \t--randomize NUMBER - select random server among NUMBER best\n\
+            \t\tCan be combined with --lowestlatency\n\
             \nDefault action: Get server from Speedtest.NET infrastructure\n\
             and test download with 30MB download size and 1MB upload size.\n");
             exit(1);
@@ -78,6 +86,10 @@ void parseCmdLine(int argc, char **argv) {
         if(strcmp("--randomize", argv[i]) == 0)
         {
             randomizeBestServers = strtoul(argv[i + 1], NULL, 10);
+        }
+        if(strcmp("--lowestlatency", argv[i]) == 0)
+        {
+            lowestLatencyServers = strtoul(argv[i + 1], NULL, 10);
         }
     }
 }
@@ -124,9 +136,42 @@ void getBestServer()
             serverList[i]->lon);
 
     qsort(serverList, serverCount, sizeof(SPEEDTESTSERVER_T *),
-                (int (*)(const void *,const void *)) sortServers);
+          (int (*)(const void *,const void *)) sortServersDistance);
 
-    if (randomizeBestServers != 0) {
+    if (lowestLatencyServers != 0) {
+        int debug = 0;
+        if (lowestLatencyServers < 0) {
+            lowestLatencyServers = -lowestLatencyServers;
+            debug = 1;
+        }
+        printf("Testing closest %d servers for latency", lowestLatencyServers);
+        fflush(stdout);
+        // for LARGE numbers of servers could do this in parallel
+        // (but best not to pester them, maybe limit max number??)
+        for(i=0; i<lowestLatencyServers; i++) {
+            latencyUrl = getLatencyUrl(serverList[i]->url);
+            serverList[i]->latency = getLatency(latencyUrl);
+            putchar('.');
+            fflush(stdout);
+        }
+        putchar('\n');
+
+        /* perform secondary sort on latency */
+        qsort(serverList, lowestLatencyServers, sizeof(SPEEDTESTSERVER_T *),
+              (int (*)(const void *,const void *)) sortServersLatency);
+
+        if (debug) {
+            for(i=0; i<lowestLatencyServers; i++) {
+                printf("%-30.30s %-20.20s Dist: %3ld km Latency: %ld %s\n",
+                       serverList[i]->sponsor, serverList[i]->name,
+                       serverList[i]->distance, serverList[i]->latency, LATENCY_UNITS);
+            }
+        }
+
+        if (randomizeBestServers >= lowestLatencyServers)
+            randomizeBestServers = lowestLatencyServers / 2;
+    }
+    if (randomizeBestServers > 1) {
         printf("Randomizing selection of %d best servers...\n", randomizeBestServers);
         srand(time(NULL));
         selectedServer = rand() % randomizeBestServers;
@@ -138,6 +183,10 @@ void getBestServer()
     downloadUrl = getServerDownloadUrl(serverList[selectedServer]->url);
     uploadUrl = malloc(sizeof(char) * strlen(serverList[selectedServer]->url) + 1);
     strcpy(uploadUrl, serverList[selectedServer]->url);
+
+    if (lowestLatencyServers)        /* avoid getting latency twice! */
+        printf("Latency: %ld %s\n",
+               serverList[selectedServer]->latency, LATENCY_UNITS);
 
     for(i=0; i<serverCount; i++){
         free(serverList[i]->url);
@@ -170,7 +219,9 @@ int main(int argc, char **argv)
   totalToBeTransfered = 1024 * 1024;
   totalDownloadTestCount = 1;
   randomizeBestServers = 0;
+  lowestLatencyServers = 0;
   speedTestConfig = NULL;
+
   parseCmdLine(argc, argv);
 
 #ifdef OPENSSL
@@ -188,8 +239,11 @@ int main(int argc, char **argv)
       getUserDefinedServer();
   }
 
-  latencyUrl = getLatencyUrl(uploadUrl);
-  testLatency(latencyUrl);
+  if (lowestLatencyServers == 0) {
+      latencyUrl = getLatencyUrl(uploadUrl);
+      printf("Latency: %ld %s\n", getLatency(latencyUrl), LATENCY_UNITS);
+  }
+
   testDownload(downloadUrl);
   testUpload(uploadUrl);
 

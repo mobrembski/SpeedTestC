@@ -1,5 +1,6 @@
 #include "SpeedtestConfig.h"
 #include "SpeedtestServers.h"
+#include "SpeedtestLatencyTest.h"
 #include "Speedtest.h"
 #include "http.h"
 
@@ -11,31 +12,27 @@
 which contains 10 chars: "test=test\n"*/
 #define LATENCY_SIZE 10
 
-void testLatency(const char *url)
+long getLatency(const char *url)
 {
   char buffer[LATENCY_SIZE] = {0};
   sock_t sockId;
-  int size = -1;
-	struct timeval tval_start;
+  struct timeval tval_start;
 
   gettimeofday(&tval_start, NULL);
-	sockId = httpGetRequestSocket(url);
+  sockId = httpGetRequestSocket(url);
+  if(sockId == 0)
+    return LATENCY_CONNECT_ERROR;
 
-	if(sockId == 0)
-	{
-	  fprintf(stderr, "ERROR: Unable to open socket for testing latency!");
-		exit(1);
-	}
-
-	while(size != 0)
-	{
-	  size = httpRecv(sockId, buffer, LATENCY_SIZE);
-		if (size == -1)
-    {
-      fprintf(stderr, "ERROR: Cannot download latency!");
-      exit(1);
+  for (;;) {
+    int size = httpRecv(sockId, buffer, LATENCY_SIZE);
+    if (size == -1) {
+      httpClose(sockId);
+      return LATENCY_DATA_ERROR;
     }
-	}
-	httpClose(sockId);
-  printf("Latency: %d ms\n", (int)(getElapsedTime(tval_start) * 1000.0f) );
+    if (size == 0)
+      break;
+  }
+
+  httpClose(sockId);
+  return (long)(getElapsedTime(tval_start) * LATENCY_UNITS_PER_SECOND); /* ms */
 }
