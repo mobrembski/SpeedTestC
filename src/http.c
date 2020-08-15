@@ -21,6 +21,8 @@
 #include "url.h"
 #include "http.h"
 
+#define USER_AGENT "SpeedTestC"
+
 int _httpErrorCode = 0;
 
 int httpLastError()
@@ -88,11 +90,11 @@ sock_t httpPut(char* pAddress, int pPort, char* pRequest, unsigned long contentS
 	 Leaving it uninitialized gives us random high value.*/
 	sprintf(buffer, "POST %s HTTP/1.1\r\n"
 			"Host: %s\r\n"
-			"User-Agent: SPEEDTEST_CLIENT\r\n"
+			"User-Agent: %s\r\n"
 			"Content-Type: application/x-www-form-urlencoded\r\n"
 			"Connection: keep-alive\r\n"
 			"Content-Length: %lu\r\n"
-			"\r\n", pRequest, pAddress, 100*contentSize);
+			"\r\n", pRequest, pAddress, USER_AGENT, 100*contentSize);
 
 #ifdef OPENSSL
 	sock_t sock = bioWrap(sockId, ssl, 1);
@@ -131,9 +133,9 @@ sock_t httpGet(char* pAddress, int pPort, char* pRequest, int ssl)
 
 	sprintf(buffer, "GET %s HTTP/1.1\r\n"
 			"Host: %s\r\n"
-			"User-Agent: SPEEDTEST_CLIENT\r\n"
+			"User-Agent: %s\r\n"
 			"Connection: close\r\n"
-			"\r\n", pRequest, pAddress);
+			"\r\n", pRequest, pAddress, USER_AGENT);
 
 #ifdef OPENSSL
 	sockId = bioWrap(s, ssl, 1);
