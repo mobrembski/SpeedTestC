@@ -16,6 +16,19 @@
 #include <sys/time.h>
 #include <string.h>
 
+// Global variables
+SPEEDTESTSERVER_T **serverList;
+int serverCount;
+unsigned totalDownloadTestCount;
+char *downloadUrl;
+char *tmpUrl;
+char *uploadUrl;
+char *latencyUrl;
+unsigned long totalTransfered;
+unsigned long totalToBeTransfered;
+int randomizeBestServers;
+int lowestLatencyServers;
+
 // strdup isnt a C99 function, so we need it to define itself
 char *strdup(const char *str)
 {
@@ -105,6 +118,7 @@ void freeMem()
 
 void getBestServer()
 {
+    int i;
     size_t selectedServer = 0;
     speedTestConfig = getConfig();
     if (speedTestConfig == NULL)

@@ -11,7 +11,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const char *ConfigLineIdentitier[] = {"<client", "<upload", "<server-config", "<download"};
+static const char *ConfigLineIdentitier[] = {"<client", "<upload", "<server-config", "<download"};
+SPEEDTESTCONFIG_T *speedTestConfig;
 
 long haversineDistance(float lat1, float lon1, float lat2, float lon2)
 {
