@@ -12,11 +12,11 @@ extern unsigned long totalTransfered;
 extern unsigned long totalToBeTransfered;
 
 typedef struct thread_args {
-  pthread_t tid;
-  char *url;
-  unsigned int testCount;
-  unsigned long transferedBytes;
-  float elapsedSecs;
+    pthread_t tid;
+    char *url;
+    unsigned int testCount;
+    unsigned long transferedBytes;
+    float elapsedSecs;
 } THREADARGS_T;
 
 float getElapsedTime(struct timeval tval_start);

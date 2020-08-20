@@ -1,8 +1,8 @@
 /*
-	URL functions.
+    URL functions.
 
-	Luke Graham (39ster@gmail.com)
-	Michał Obrembski (byku@byku.com.pl)
+    Luke Graham (39ster@gmail.com)
+    Michał Obrembski (byku@byku.com.pl)
 */
 #include <string.h>
 #include <stdlib.h>
@@ -29,8 +29,8 @@ void breakUrl(const char* pUrl, URLPARTS_T* pUrlStruct)
             pUrlStruct->port = 21;
         else if(strcmp(ptr1, "https") == 0) {
             pUrlStruct->port = 443;
-	    pUrlStruct->ssl = 1;
-	}
+        pUrlStruct->ssl = 1;
+    }
         ptr1 = ptr2 + 3;
     } else if(pUrlStruct->protocolLen > 0)
     *pUrlStruct->protocol = 0;

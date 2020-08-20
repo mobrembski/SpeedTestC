@@ -9,7 +9,7 @@ typedef BIO *sock_t;
 #define BAD_SOCKID NULL
 #else
 typedef int sock_t;
-#define BAD_SOCKID 0			/* should use -1!! */
+#define BAD_SOCKID 0  /* should use -1!! */
 #endif
 
 sock_t httpPut(char* pAddress, int pPort, char* pRequest, unsigned long contentSize, int ssl);

@@ -3,14 +3,14 @@
 
 typedef struct speedtestServer
 {
-	char *url;
-	float lat;
-	float lon;
-	char *name;
-	char *country;
-	char *sponsor;
-	long distance;
-	long latency;
+    char *url;
+    float lat;
+    float lon;
+    char *name;
+    char *country;
+    char *sponsor;
+    long distance;
+    long latency;
 
 } SPEEDTESTSERVER_T;
 SPEEDTESTSERVER_T **getServers(int *serverCount, const char *infraUrl);

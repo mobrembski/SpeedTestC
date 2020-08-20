@@ -11,22 +11,22 @@
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(_x) \
-	(sizeof(_x) / sizeof(_x[0]))
+    (sizeof(_x) / sizeof(_x[0]))
 #endif /* ARRAY_SIZE */
 
 typedef struct ThreadConfig {
-	int threadsCount; /* number of threads */
-	int length; /* testlength? */
+    int threadsCount; /* number of threads */
+    int length; /* testlength? */
 } THREADCONFIG_T;
 
 typedef struct speedtestConfig
 {
-	char ip[16];
-	float lat;
-	float lon;
-	char isp[255];
-	THREADCONFIG_T uploadThreadConfig;
-	THREADCONFIG_T downloadThreadConfig;
+    char ip[16];
+    float lat;
+    float lon;
+    char isp[255];
+    THREADCONFIG_T uploadThreadConfig;
+    THREADCONFIG_T downloadThreadConfig;
 } SPEEDTESTCONFIG_T;
 
 SPEEDTESTCONFIG_T *getConfig();

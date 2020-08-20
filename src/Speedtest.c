@@ -56,7 +56,8 @@ float getElapsedTime(struct timeval tval_start) {
     gettimeofday(&tval_end, NULL);
     tval_diff.tv_sec = tval_end.tv_sec - tval_start.tv_sec;
     tval_diff.tv_usec = tval_end.tv_usec - tval_start.tv_usec;
-    if(tval_diff.tv_usec < 0) {
+    if(tval_diff.tv_usec < 0)
+    {
         --tval_diff.tv_sec;
         tval_diff.tv_usec += 1000000;
     }
@@ -152,9 +153,11 @@ void getBestServer()
     qsort(serverList, serverCount, sizeof(SPEEDTESTSERVER_T *),
           (int (*)(const void *,const void *)) sortServersDistance);
 
-    if (lowestLatencyServers != 0) {
+    if (lowestLatencyServers != 0)
+    {
         int debug = 0;
-        if (lowestLatencyServers < 0) {
+        if (lowestLatencyServers < 0)
+        {
             lowestLatencyServers = -lowestLatencyServers;
             debug = 1;
         }
@@ -162,7 +165,8 @@ void getBestServer()
         fflush(stdout);
         // for LARGE numbers of servers could do this in parallel
         // (but best not to pester them, maybe limit max number??)
-        for(i=0; i<lowestLatencyServers; i++) {
+        for(i=0; i<lowestLatencyServers; i++)
+        {
             latencyUrl = getLatencyUrl(serverList[i]->url);
             serverList[i]->latency = getLatency(latencyUrl);
             putchar('.');
@@ -174,8 +178,10 @@ void getBestServer()
         qsort(serverList, lowestLatencyServers, sizeof(SPEEDTESTSERVER_T *),
               (int (*)(const void *,const void *)) sortServersLatency);
 
-        if (debug) {
-            for(i=0; i<lowestLatencyServers; i++) {
+        if (debug)
+        {
+            for(i=0; i<lowestLatencyServers; i++)
+            {
                 printf("%-30.30s %-20.20s Dist: %3ld km Latency: %ld %s\n",
                        serverList[i]->sponsor, serverList[i]->name,
                        serverList[i]->distance, serverList[i]->latency, LATENCY_UNITS);
@@ -185,7 +191,8 @@ void getBestServer()
         if (randomizeBestServers >= lowestLatencyServers)
             randomizeBestServers = lowestLatencyServers / 2;
     }
-    if (randomizeBestServers > 1) {
+    if (randomizeBestServers > 1)
+    {
         printf("Randomizing selection of %d best servers...\n", randomizeBestServers);
         srand(time(NULL));
         selectedServer = rand() % randomizeBestServers;
@@ -202,7 +209,8 @@ void getBestServer()
         printf("Latency: %ld %s\n",
                serverList[selectedServer]->latency, LATENCY_UNITS);
 
-    for(i=0; i<serverCount; i++){
+    for(i=0; i<serverCount; i++)
+    {
         free(serverList[i]->url);
         free(serverList[i]->name);
         free(serverList[i]->sponsor);
@@ -229,14 +237,14 @@ static void getUserDefinedServer()
 
 int main(int argc, char **argv)
 {
-  totalTransfered = 1024 * 1024;
-  totalToBeTransfered = 1024 * 1024;
-  totalDownloadTestCount = 1;
-  randomizeBestServers = 0;
-  lowestLatencyServers = 0;
-  speedTestConfig = NULL;
+    totalTransfered = 1024 * 1024;
+    totalToBeTransfered = 1024 * 1024;
+    totalDownloadTestCount = 1;
+    randomizeBestServers = 0;
+    lowestLatencyServers = 0;
+    speedTestConfig = NULL;
 
-  parseCmdLine(argc, argv);
+    parseCmdLine(argc, argv);
 
 #ifdef OPENSSL
   SSL_library_init();
@@ -244,23 +252,24 @@ int main(int argc, char **argv)
   OpenSSL_add_all_algorithms();
 #endif
 
-  if(downloadUrl == NULL)
-  {
-      getBestServer();
-  }
-  else
-  {
-      getUserDefinedServer();
-  }
+    if(downloadUrl == NULL)
+    {
+        getBestServer();
+    }
+    else
+    {
+        getUserDefinedServer();
+    }
 
-  if (lowestLatencyServers == 0) {
-      latencyUrl = getLatencyUrl(uploadUrl);
-      printf("Latency: %ld %s\n", getLatency(latencyUrl), LATENCY_UNITS);
-  }
+    if (lowestLatencyServers == 0)
+    {
+        latencyUrl = getLatencyUrl(uploadUrl);
+        printf("Latency: %ld %s\n", getLatency(latencyUrl), LATENCY_UNITS);
+    }
 
-  testDownload(downloadUrl);
-  testUpload(uploadUrl);
+    testDownload(downloadUrl);
+    testUpload(uploadUrl);
 
-  freeMem();
-  return 0;
+    freeMem();
+    return 0;
 }

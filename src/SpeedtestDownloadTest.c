@@ -11,36 +11,36 @@
 
 static void *__downloadThread(void *arg)
 {
-  THREADARGS_T *threadConfig = (THREADARGS_T*)arg;
-	int testNum;
-	char buffer[BUFFER_SIZE] = {0};
-	struct timeval tval_start;
+    THREADARGS_T *threadConfig = (THREADARGS_T*)arg;
+    int testNum;
+    char buffer[BUFFER_SIZE] = {0};
+    struct timeval tval_start;
 
-	gettimeofday(&tval_start, NULL);
-	for (testNum = 0; testNum < threadConfig->testCount; testNum++)
-  {
-		int size = -1;
-		sock_t sockId = httpGetRequestSocket(threadConfig->url);
+    gettimeofday(&tval_start, NULL);
+    for (testNum = 0; testNum < threadConfig->testCount; testNum++)
+    {
+        int size = -1;
+        sock_t sockId = httpGetRequestSocket(threadConfig->url);
 
-		if(sockId == 0)
-		{
-		  fprintf(stderr, "Unable to open socket for Download!");
-			pthread_exit(NULL);
-		}
+        if(sockId == 0)
+        {
+          fprintf(stderr, "Unable to open socket for Download!");
+            pthread_exit(NULL);
+        }
 
-		while(size != 0)
-		{
-		  size = httpRecv(sockId, buffer, BUFFER_SIZE);
-			if (size != -1)
+        while(size != 0)
+        {
+          size = httpRecv(sockId, buffer, BUFFER_SIZE);
+            if (size != -1)
       {
         threadConfig->transferedBytes += size;
       }
-		}
-		httpClose(sockId);
-	}
-	threadConfig->elapsedSecs = getElapsedTime(tval_start);
+        }
+        httpClose(sockId);
+    }
+    threadConfig->elapsedSecs = getElapsedTime(tval_start);
 
-	return NULL;
+    return NULL;
 }
 
 void testDownload(const char *url)
@@ -51,21 +51,26 @@ void testDownload(const char *url)
   float speed = 0;
 
   /* Initialize and start threads */
-  for (i = 0; i < numOfThreads; i++) {
+  for (i = 0; i < numOfThreads; i++)
+  {
     param[i].testCount = totalDownloadTestCount / numOfThreads;
-    if (param[i].testCount == 0) {
+    if (param[i].testCount == 0)
+    {
       /* At least one test should be run */
       param[i].testCount = 1;
     }
     param[i].url = strdup(url);
-    if (param[i].url) {
+    if (param[i].url)
+    {
       pthread_create(&param[i].tid, NULL, &__downloadThread, &param[i]);
     }
   }
   /* Wait for all threads */
-  for (i = 0; i < numOfThreads; i++) {
+  for (i = 0; i < numOfThreads; i++)
+  {
     pthread_join(param[i].tid, NULL);
-    if (param[i].transferedBytes) {
+    if (param[i].transferedBytes)
+    {
       /* There's no reason that we transfered nothing except error occured */
       totalTransfered += param[i].transferedBytes;
       speed += (param[i].transferedBytes / param[i].elapsedSecs) / 1024;

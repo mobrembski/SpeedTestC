@@ -97,29 +97,30 @@ SPEEDTESTSERVER_T **getServers(int *serverCount, const char *infraUrl)
 
 static char *modifyServerUrl(char *serverUrl, const char *urlFile)
 {
-  size_t urlSize = strlen(serverUrl);
-  char *upload = strstr(serverUrl, "upload.php");
-  if(upload == NULL) {
-      printf("Download URL parsing error - cannot find upload.php in %s\n",
-          serverUrl);
-      exit(1);
-  }
-  size_t uploadSize = strlen(upload);
-  size_t totalSize = (urlSize - uploadSize) +
-      strlen(urlFile) + 1;
-  char *result = (char*)malloc(sizeof(char) * totalSize);
-  result[(urlSize - uploadSize)] = '\0';
-  memcpy(result, serverUrl, urlSize - uploadSize);
-  strcat(result, urlFile);
-  return result;
+    size_t urlSize = strlen(serverUrl);
+    char *upload = strstr(serverUrl, "upload.php");
+    if(upload == NULL)
+    {
+        printf("Download URL parsing error - cannot find upload.php in %s\n",
+            serverUrl);
+        exit(1);
+    }
+    size_t uploadSize = strlen(upload);
+    size_t totalSize = (urlSize - uploadSize) +
+        strlen(urlFile) + 1;
+    char *result = (char*)malloc(sizeof(char) * totalSize);
+    result[(urlSize - uploadSize)] = '\0';
+    memcpy(result, serverUrl, urlSize - uploadSize);
+    strcat(result, urlFile);
+    return result;
 }
 
 char *getServerDownloadUrl(char *serverUrl)
 {
-  return modifyServerUrl(serverUrl, "random4000x4000.jpg");
+    return modifyServerUrl(serverUrl, "random4000x4000.jpg");
 }
 
 char *getLatencyUrl(char *serverUrl)
 {
-  return modifyServerUrl(serverUrl, "latency.txt");
+    return modifyServerUrl(serverUrl, "latency.txt");
 }
